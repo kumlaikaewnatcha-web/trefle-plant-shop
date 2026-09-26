@@ -1,12 +1,17 @@
 async function loadFavorites() {
-    const response = await fetch("/api/favorites");
+    try {
+        const response = await fetch("/api/favorites");
 
-    const result = await response.json();
+        const result = await response.json();
 
-    console.log(result);
+        console.log(result);
 
-    displayFavorites(result.data);
+        displayFavorites(result.data);
+    } catch (error) {
+        console.error("โหลด Favorite ไม่สำเร็จ:", error);
+    }
 }
+
 
 function displayFavorites(plants) {
     const favoriteList =
@@ -14,13 +19,24 @@ function displayFavorites(plants) {
 
     favoriteList.innerHTML = "";
 
+    // กรณีไม่มี Favorite
+    if (!plants || plants.length === 0) {
+        favoriteList.innerHTML =
+            "<p>ยังไม่มีต้นไม้ในรายการโปรด</p>";
+
+        return;
+    }
+
+  
     plants.forEach(plant => {
         const card = document.createElement("div");
 
         card.className = "plant-card";
 
         card.innerHTML = `
-            <h2>${plant.common_name || "ไม่พบชื่อทั่วไป"}</h2>
+            <h2>
+                ${plant.common_name || "ไม่พบชื่อทั่วไป"}
+            </h2>
 
             <p>
                 ชื่อวิทยาศาสตร์:
@@ -36,4 +52,28 @@ function displayFavorites(plants) {
     });
 }
 
+
+async function removeFavorite(slug) {
+    try {
+        const response = await fetch(
+            `/api/favorites/${encodeURIComponent(slug)}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        const result = await response.json();
+
+        console.log(result);
+
+     
+        loadFavorites();
+
+    } catch (error) {
+        console.error("ลบ Favorite ไม่สำเร็จ:", error);
+    }
+}
+
+
+// โหลด Favorite ตอนเปิดหน้า
 loadFavorites();
