@@ -17,8 +17,9 @@ async function searchPlants() {
     );
 
     const data = await response.json();
-
-    displayPlants(data.data);
+        console.log(data);
+    const sortedPlants = insertionSort(data.data);
+    displayPlants(sortedPlants);
 }
 
 function displayPlants(plants) {
@@ -39,6 +40,27 @@ function displayPlants(plants) {
 
         plantList.appendChild(card);
     });
+}
+
+function insertionSort(plants) {
+    for (let i = 1; i < plants.length; i++) {
+        const current = plants[i];
+        let j = i - 1;
+
+        while (
+            j >= 0 &&
+            (plants[j].common_name || "").localeCompare(
+                current.common_name || ""
+            ) > 0
+        ) {
+            plants[j + 1] = plants[j];
+            j--;
+        }
+
+        plants[j + 1] = current;
+    }
+
+    return plants;
 }
 
 function viewDetail(slug) {
