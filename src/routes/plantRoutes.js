@@ -25,7 +25,7 @@ router.get("/search", async (req, res) => {
         console.error(error);
 
         res.status(500).json({
-            error: "ไม่สามารถค้นหาข้อมูลจาก Trefle ได้"
+            error: error.message
         });
     }
 });
