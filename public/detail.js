@@ -55,5 +55,6 @@ async function loadPlantDetail() {
     }
 }
 
+loadPlantDetail();
 
 loadPlantDetail();
