@@ -19,7 +19,7 @@ function displayFavorites(plants) {
 
     favoriteList.innerHTML = "";
 
-    // กรณีไม่มี Favorite
+  
     if (!plants || plants.length === 0) {
         favoriteList.innerHTML =
             "<p>ยังไม่มีต้นไม้ในรายการโปรด</p>";
@@ -75,5 +75,5 @@ async function removeFavorite(slug) {
 }
 
 
-// โหลด Favorite ตอนเปิดหน้า
+
 loadFavorites();

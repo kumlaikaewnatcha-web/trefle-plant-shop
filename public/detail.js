@@ -1,60 +1,392 @@
-const params = new URLSearchParams(
-    window.location.search
-);
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
 
-const slug = params.get("slug");
+const slug =
+    params.get("slug");
 
-console.log("slug:", slug);
+const detail =
+    document.getElementById(
+        "plantDetail"
+    );
 
 
 async function loadPlantDetail() {
 
-    const plantDetail = document.getElementById("plantDetail");
-
     if (!slug) {
-        plantDetail.innerHTML =
-            "<p>ไม่พบข้อมูลต้นไม้</p>";
-
+        showError(
+            "Plant not found"
+        );
         return;
     }
 
+
     try {
 
-        const response = await fetch(
-            `/api/plants/${encodeURIComponent(slug)}`
-        );
+        const response =
+            await fetch(
+                `/api/plants/${encodeURIComponent(slug)}`
+            );
+
 
         if (!response.ok) {
-            throw new Error("ไม่สามารถโหลดข้อมูลต้นไม้ได้");
+            throw new Error(
+                `API Error: ${response.status}`
+            );
         }
 
-        const data = await response.json();
 
-        console.log("Detail API:", data);
+        const data =
+            await response.json();
 
-        const plant = data.data;
 
-        plantDetail.innerHTML = `
-            <h2>
-                ${plant.common_name || "ไม่พบชื่อทั่วไป"}
-            </h2>
+        const plant =
+            data.data;
 
-            <p>
-                <strong>ชื่อวิทยาศาสตร์:</strong>
-                ${plant.scientific_name || "ไม่พบข้อมูล"}
-            </p>
-        `;
+
+        if (
+            !plant ||
+            !plant.common_name
+        ) {
+
+            throw new Error(
+                "Plant name unavailable"
+            );
+        }
+
+
+        displayPlantDetail(
+            plant
+        );
+
 
     } catch (error) {
 
         console.error(error);
 
-        plantDetail.innerHTML = `
-            <p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>
-        `;
+        showError(
+            "Unable to load plant information"
+        );
     }
 }
 
-loadPlantDetail();
+
+
+function displayPlantDetail(
+    plant
+) {
+
+    detail.innerHTML = "";
+
+
+    const image =
+        document.createElement(
+            "img"
+        );
+
+    image.className =
+        "detail-image";
+
+    image.src =
+        plant.image_url || "";
+
+    image.alt =
+        plant.common_name;
+
+
+    image.onerror =
+        function () {
+            image.style.display =
+                "none";
+        };
+
+
+    const label =
+        document.createElement(
+            "span"
+        );
+
+    label.className =
+        "small-title";
+
+    label.textContent =
+        "PLANT INFORMATION";
+
+
+    const title =
+        document.createElement(
+            "h2"
+        );
+
+    title.textContent =
+        plant.common_name;
+
+
+    const scientific =
+        document.createElement(
+            "p"
+        );
+
+    scientific.className =
+        "scientific-name";
+
+    scientific.textContent =
+        plant.scientific_name ||
+        "Scientific name unavailable";
+
+
+    const favoriteButton =
+        document.createElement(
+            "button"
+        );
+
+    favoriteButton.className =
+        "favorite-button";
+
+
+    updateFavoriteButton(
+        plant.slug,
+        favoriteButton
+    );
+
+
+    favoriteButton.addEventListener(
+        "click",
+        async function () {
+
+            await toggleFavorite(
+                plant,
+                favoriteButton
+            );
+        }
+    );
+
+
+    detail.appendChild(
+        image
+    );
+
+    detail.appendChild(
+        label
+    );
+
+    detail.appendChild(
+        title
+    );
+
+    detail.appendChild(
+        scientific
+    );
+
+    detail.appendChild(
+        favoriteButton
+    );
+}
+
+
+
+async function checkFavorite(
+    slug
+) {
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/favorites/${encodeURIComponent(slug)}`
+            );
+
+
+        if (!response.ok) {
+            return false;
+        }
+
+
+        const data =
+            await response.json();
+
+
+        return data.favorite === true;
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        return false;
+    }
+}
+
+
+
+async function updateFavoriteButton(
+    slug,
+    button
+) {
+
+    const favorite =
+        await checkFavorite(
+            slug
+        );
+
+
+    if (favorite) {
+
+        button.textContent =
+            "❤️ Saved";
+
+        button.classList.add(
+            "is-favorite"
+        );
+
+    } else {
+
+        button.textContent =
+            "♡ Save";
+
+        button.classList.remove(
+            "is-favorite"
+        );
+    }
+}
+
+
+
+async function toggleFavorite(
+    plant,
+    button
+) {
+
+    const currentlyFavorite =
+        await checkFavorite(
+            plant.slug
+        );
+
+
+    try {
+
+        button.disabled =
+            true;
+
+
+        if (currentlyFavorite) {
+
+            const response =
+                await fetch(
+                    `/api/favorites/${encodeURIComponent(plant.slug)}`,
+                    {
+                        method:
+                            "DELETE"
+                    }
+                );
+
+
+            if (!response.ok) {
+                throw new Error(
+                    "Remove failed"
+                );
+            }
+
+
+            button.textContent =
+                "♡ Save";
+
+            button.classList.remove(
+                "is-favorite"
+            );
+
+
+        } else {
+
+            button.textContent =
+                "Saving...";
+
+
+            const response =
+                await fetch(
+                    "/api/favorites",
+                    {
+                        method:
+                            "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                plant
+                            )
+                    }
+                );
+
+
+            if (!response.ok) {
+                throw new Error(
+                    "Add failed"
+                );
+            }
+
+
+            button.textContent =
+                "❤️ Saved";
+
+            button.classList.add(
+                "is-favorite"
+            );
+        }
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Unable to update favorites."
+        );
+
+
+        await updateFavoriteButton(
+            plant.slug,
+            button
+        );
+
+
+    } finally {
+
+        button.disabled =
+            false;
+    }
+}
+
+
+
+function showError(
+    message
+) {
+
+    detail.innerHTML = `
+
+        <div class="error-state">
+
+            <div class="error-icon">
+                🌱
+            </div>
+
+            <h3>
+                ${message}
+            </h3>
+
+            <p>
+                Please try again.
+            </p>
+
+        </div>
+
+    `;
+}
+
 
 loadPlantDetail();
