@@ -8,21 +8,20 @@ const plantList =
     document.getElementById("plantList");
 
 
-// ===============================
-// Search
-// ===============================
-
 searchButton.addEventListener(
     "click",
     searchPlants
 );
 
+
 searchInput.addEventListener(
     "keydown",
     function (event) {
+
         if (event.key === "Enter") {
             searchPlants();
         }
+
     }
 );
 
@@ -32,13 +31,24 @@ async function searchPlants() {
     const query =
         searchInput.value.trim();
 
+
     if (!query) {
 
         plantList.innerHTML = `
             <div class="message-box">
-                <div class="message-icon">🌱</div>
-                <h3>Search for a plant</h3>
-                <p>Enter a plant name to start exploring.</p>
+
+                <div class="message-icon">
+                    🌱
+                </div>
+
+                <h3>
+                    Search for a plant
+                </h3>
+
+                <p>
+                    Enter a plant name to start exploring.
+                </p>
+
             </div>
         `;
 
@@ -50,9 +60,19 @@ async function searchPlants() {
 
         plantList.innerHTML = `
             <div class="loading-state">
-                <div class="loading-icon">🌿</div>
-                <h3>Searching...</h3>
-                <p>Finding plants for you</p>
+
+                <div class="loading-icon">
+                    🌿
+                </div>
+
+                <h3>
+                    Searching...
+                </h3>
+
+                <p>
+                    Finding plants for you
+                </p>
+
             </div>
         `;
 
@@ -64,9 +84,11 @@ async function searchPlants() {
 
 
         if (!response.ok) {
+
             throw new Error(
                 `API Error: ${response.status}`
             );
+
         }
 
 
@@ -81,13 +103,15 @@ async function searchPlants() {
 
 
         if (!data.data) {
+
             throw new Error(
                 "No data from API"
             );
+
         }
 
 
-        // เอาเฉพาะต้นไม้ที่มีชื่อ
+        // เอาเฉพาะต้นไม้ที่มี common_name
         const plantsWithNames =
             data.data.filter(
                 plant =>
@@ -96,7 +120,7 @@ async function searchPlants() {
             );
 
 
-        // Insertion Sort A-Z
+        // เรียงชื่อ A-Z ด้วย Insertion Sort
         const sortedPlants =
             insertionSort(
                 plantsWithNames
@@ -115,19 +139,33 @@ async function searchPlants() {
 
         plantList.innerHTML = `
             <div class="error-state">
-                <div class="error-icon">🌱</div>
-                <h3>Something went wrong</h3>
-                <p>Please try searching again.</p>
+
+                <div class="error-icon">
+                    🌱
+                </div>
+
+                <h3>
+                    Something went wrong
+                </h3>
+
+                <p>
+                    Please try searching again.
+                </p>
+
             </div>
         `;
+
     }
+
 }
 
 
+/*
+    Insertion Sort
 
-// ===============================
-// Insertion Sort
-// ===============================
+    เรียงชื่อ common_name
+    จาก A → Z
+*/
 
 function insertionSort(plants) {
 
@@ -139,6 +177,7 @@ function insertionSort(plants) {
 
         const current =
             plants[i];
+
 
         let j =
             i - 1;
@@ -155,12 +194,15 @@ function insertionSort(plants) {
             plants[j + 1] =
                 plants[j];
 
+
             j--;
+
         }
 
 
         plants[j + 1] =
             current;
+
     }
 
 
@@ -168,10 +210,9 @@ function insertionSort(plants) {
 }
 
 
-
-// ===============================
-// Display Plant Cards
-// ===============================
+/*
+    แสดง Plant Card
+*/
 
 function displayPlants(plants) {
 
@@ -185,9 +226,19 @@ function displayPlants(plants) {
 
         plantList.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">🍃</div>
-                <h3>No plants found</h3>
-                <p>Try another plant name.</p>
+
+                <div class="empty-icon">
+                    🍃
+                </div>
+
+                <h3>
+                    No plants found
+                </h3>
+
+                <p>
+                    Try another plant name.
+                </p>
+
             </div>
         `;
 
@@ -203,79 +254,76 @@ function displayPlants(plants) {
                     "article"
                 );
 
+
             card.className =
                 "plant-card";
 
 
-            // ---------------------------
-            // Image
-            // ---------------------------
-
+            // รูป
             const image =
                 document.createElement(
                     "img"
                 );
 
+
             image.className =
                 "plant-image";
 
+
             image.src =
                 plant.image_url || "";
+
 
             image.alt =
                 plant.common_name;
 
 
-            // ถ้าไม่มีรูป
             image.onerror =
                 function () {
 
                     image.style.display =
                         "none";
+
                 };
 
 
-            // ---------------------------
-            // Plant Name
-            // ---------------------------
-
+            // ชื่อ
             const title =
                 document.createElement(
                     "h3"
                 );
 
+
             title.textContent =
                 plant.common_name;
 
 
-            // ---------------------------
-            // Scientific Name
-            // ---------------------------
-
+            // ชื่อวิทยาศาสตร์
             const scientific =
                 document.createElement(
                     "p"
                 );
 
+
             scientific.className =
                 "scientific-name";
+
 
             scientific.textContent =
                 plant.scientific_name ||
                 "Scientific name unavailable";
 
 
-            // ---------------------------
-            // Detail Button
-            // ---------------------------
-
+            // ปุ่ม View Details
             const detailButton =
                 document.createElement(
                     "button"
                 );
 
+
             detailButton.className =
                 "secondary-button";
+
 
             detailButton.textContent =
                 "View details";
@@ -288,18 +336,17 @@ function displayPlants(plants) {
                     viewDetail(
                         plant.slug
                     );
+
                 }
             );
 
 
-            // ---------------------------
-            // Favorite Button
-            // ---------------------------
-
+            // ปุ่ม Favorite
             const favoriteButton =
                 document.createElement(
                     "button"
                 );
+
 
             favoriteButton.className =
                 "favorite-button";
@@ -319,18 +366,17 @@ function displayPlants(plants) {
                         plant,
                         favoriteButton
                     );
+
                 }
             );
 
 
-            // ---------------------------
-            // Buttons
-            // ---------------------------
-
+            // กลุ่มปุ่ม
             const buttons =
                 document.createElement(
                     "div"
                 );
+
 
             buttons.className =
                 "card-buttons";
@@ -340,26 +386,27 @@ function displayPlants(plants) {
                 detailButton
             );
 
+
             buttons.appendChild(
                 favoriteButton
             );
 
 
-            // ---------------------------
-            // Card
-            // ---------------------------
-
+            // ใส่ข้อมูลลง Card
             card.appendChild(
                 image
             );
+
 
             card.appendChild(
                 title
             );
 
+
             card.appendChild(
                 scientific
             );
+
 
             card.appendChild(
                 buttons
@@ -369,19 +416,17 @@ function displayPlants(plants) {
             plantList.appendChild(
                 card
             );
+
         }
     );
 }
 
 
+/*
+    ตรวจสอบว่าเป็น Favorite หรือไม่
+*/
 
-// ===============================
-// Check Favorite
-// ===============================
-
-async function checkFavorite(
-    slug
-) {
+async function checkFavorite(slug) {
 
     try {
 
@@ -410,15 +455,17 @@ async function checkFavorite(
             error
         );
 
+
         return false;
+
     }
+
 }
 
 
-
-// ===============================
-// Update Favorite Button
-// ===============================
+/*
+    เปลี่ยนข้อความปุ่ม Favorite
+*/
 
 async function updateFavoriteButton(
     slug,
@@ -436,26 +483,30 @@ async function updateFavoriteButton(
         button.textContent =
             "❤️ Saved";
 
+
         button.classList.add(
             "is-favorite"
         );
+
 
     } else {
 
         button.textContent =
             "♡ Save";
 
+
         button.classList.remove(
             "is-favorite"
         );
+
     }
+
 }
 
 
-
-// ===============================
-// Add / Remove Favorite
-// ===============================
+/*
+    เพิ่ม / ลบ Favorite
+*/
 
 async function toggleFavorite(
     plant,
@@ -474,10 +525,7 @@ async function toggleFavorite(
             true;
 
 
-        // ---------------------------
-        // Remove
-        // ---------------------------
-
+        // ถ้าเป็น Favorite อยู่แล้ว → ลบ
         if (currentlyFavorite) {
 
             const response =
@@ -490,14 +538,17 @@ async function toggleFavorite(
 
 
             if (!response.ok) {
+
                 throw new Error(
                     "Remove favorite failed"
                 );
+
             }
 
 
             button.textContent =
                 "♡ Save";
+
 
             button.classList.remove(
                 "is-favorite"
@@ -505,13 +556,11 @@ async function toggleFavorite(
 
 
             return;
+
         }
 
 
-        // ---------------------------
-        // Add
-        // ---------------------------
-
+        // ถ้ายังไม่เป็น Favorite → เพิ่ม
         button.textContent =
             "Saving...";
 
@@ -536,14 +585,17 @@ async function toggleFavorite(
 
 
         if (!response.ok) {
+
             throw new Error(
                 "Add favorite failed"
             );
+
         }
 
 
         button.textContent =
             "❤️ Saved";
+
 
         button.classList.add(
             "is-favorite"
@@ -573,17 +625,19 @@ async function toggleFavorite(
 
         button.disabled =
             false;
+
     }
+
 }
 
 
-
-// ===============================
-// Plant Detail
-// ===============================
+/*
+    ไปหน้ารายละเอียด
+*/
 
 function viewDetail(slug) {
 
     window.location.href =
         `plantDetail.html?slug=${encodeURIComponent(slug)}`;
+
 }

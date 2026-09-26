@@ -3,8 +3,10 @@ const params =
         window.location.search
     );
 
+
 const slug =
     params.get("slug");
+
 
 const detail =
     document.getElementById(
@@ -15,9 +17,11 @@ const detail =
 async function loadPlantDetail() {
 
     if (!slug) {
+
         showError(
             "Plant not found"
         );
+
         return;
     }
 
@@ -31,9 +35,11 @@ async function loadPlantDetail() {
 
 
         if (!response.ok) {
+
             throw new Error(
                 `API Error: ${response.status}`
             );
+
         }
 
 
@@ -53,6 +59,7 @@ async function loadPlantDetail() {
             throw new Error(
                 "Plant name unavailable"
             );
+
         }
 
 
@@ -65,12 +72,14 @@ async function loadPlantDetail() {
 
         console.error(error);
 
+
         showError(
             "Unable to load plant information"
         );
-    }
-}
 
+    }
+
+}
 
 
 function displayPlantDetail(
@@ -80,16 +89,20 @@ function displayPlantDetail(
     detail.innerHTML = "";
 
 
+    // รูป
     const image =
         document.createElement(
             "img"
         );
 
+
     image.className =
         "detail-image";
 
+
     image.src =
         plant.image_url || "";
+
 
     image.alt =
         plant.common_name;
@@ -97,49 +110,61 @@ function displayPlantDetail(
 
     image.onerror =
         function () {
+
             image.style.display =
                 "none";
+
         };
 
 
+    // Label
     const label =
         document.createElement(
             "span"
         );
 
+
     label.className =
         "small-title";
+
 
     label.textContent =
         "PLANT INFORMATION";
 
 
+    // ชื่อ
     const title =
         document.createElement(
             "h2"
         );
 
+
     title.textContent =
         plant.common_name;
 
 
+    // ชื่อวิทยาศาสตร์
     const scientific =
         document.createElement(
             "p"
         );
 
+
     scientific.className =
         "scientific-name";
+
 
     scientific.textContent =
         plant.scientific_name ||
         "Scientific name unavailable";
 
 
+    // Favorite
     const favoriteButton =
         document.createElement(
             "button"
         );
+
 
     favoriteButton.className =
         "favorite-button";
@@ -159,6 +184,7 @@ function displayPlantDetail(
                 plant,
                 favoriteButton
             );
+
         }
     );
 
@@ -167,28 +193,34 @@ function displayPlantDetail(
         image
     );
 
+
     detail.appendChild(
         label
     );
+
 
     detail.appendChild(
         title
     );
 
+
     detail.appendChild(
         scientific
     );
 
+
     detail.appendChild(
         favoriteButton
     );
+
 }
 
 
+/*
+    ตรวจสอบ Favorite
+*/
 
-async function checkFavorite(
-    slug
-) {
+async function checkFavorite(slug) {
 
     try {
 
@@ -215,10 +247,15 @@ async function checkFavorite(
         console.error(error);
 
         return false;
+
     }
+
 }
 
 
+/*
+    อัปเดตปุ่ม Favorite
+*/
 
 async function updateFavoriteButton(
     slug,
@@ -236,22 +273,30 @@ async function updateFavoriteButton(
         button.textContent =
             "❤️ Saved";
 
+
         button.classList.add(
             "is-favorite"
         );
+
 
     } else {
 
         button.textContent =
             "♡ Save";
 
+
         button.classList.remove(
             "is-favorite"
         );
+
     }
+
 }
 
 
+/*
+    เพิ่ม / ลบ Favorite
+*/
 
 async function toggleFavorite(
     plant,
@@ -283,14 +328,17 @@ async function toggleFavorite(
 
 
             if (!response.ok) {
+
                 throw new Error(
                     "Remove failed"
                 );
+
             }
 
 
             button.textContent =
                 "♡ Save";
+
 
             button.classList.remove(
                 "is-favorite"
@@ -324,24 +372,29 @@ async function toggleFavorite(
 
 
             if (!response.ok) {
+
                 throw new Error(
                     "Add failed"
                 );
+
             }
 
 
             button.textContent =
                 "❤️ Saved";
 
+
             button.classList.add(
                 "is-favorite"
             );
+
         }
 
 
     } catch (error) {
 
         console.error(error);
+
 
         alert(
             "Unable to update favorites."
@@ -358,10 +411,15 @@ async function toggleFavorite(
 
         button.disabled =
             false;
+
     }
+
 }
 
 
+/*
+    แสดง Error
+*/
 
 function showError(
     message
@@ -386,6 +444,7 @@ function showError(
         </div>
 
     `;
+
 }
 
 
