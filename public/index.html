@@ -1,16 +1,192 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trefle Plant Shop</title>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Trefle Plant Shop</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
 </head>
+
 
 <body>
 
-  <h1>🌱 Trefle Plant Shop</h1>
 
-  <p>ร้านขายต้นไม้ของเรา</p>
+    <header class="header">
+
+        <div class="nav">
+
+            <div class="brand">
+
+                <div class="brand-icon">
+                    🌿
+                </div>
+
+                <div>
+
+                    <h1>
+                        Trefle Plant Shop
+                    </h1>
+
+                    <span>
+                        Discover your favorite plants
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <a
+                href="favorites.html"
+                class="favorites-link"
+            >
+                ❤️ Favorites
+            </a>
+
+        </div>
+
+    </header>
+
+
+
+    <main class="container">
+
+
+        <section class="hero">
+
+            <div class="hero-content">
+
+                <span class="eyebrow">
+                    🌱 PLANT EXPLORER
+                </span>
+
+                <h2>
+                    Find a plant<br>
+                    <span>you'll love.</span>
+                </h2>
+
+                <p>
+                    Explore plant information,
+                    discover new species,
+                    and save your favorites.
+                </p>
+
+
+                <div class="search-box">
+
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search plants..."
+                    >
+
+                    <button
+                        id="searchButton"
+                        class="primary-button"
+                    >
+                        Search
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="hero-decoration">
+
+                <div class="leaf-circle">
+                    🌿
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <section class="result-section">
+
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="small-title">
+                        SEARCH RESULT
+                    </span>
+
+                    <h2>
+                        Explore plants
+                    </h2>
+
+                </div>
+
+                <span class="sort-label">
+                    A–Z
+                </span>
+
+            </div>
+
+
+            <div
+                id="plantList"
+                class="plant-grid"
+            >
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        🌱
+                    </div>
+
+                    <h3>
+                        Start exploring
+                    </h3>
+
+                    <p>
+                        Search for a plant name
+                        to see the results.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+    </main>
+
+
+
+    <footer class="footer">
+
+        <strong>
+            🌿 Trefle Plant Shop
+        </strong>
+
+        <span>
+            Plant information powered by Trefle API
+        </span>
+
+    </footer>
+
+
+
+    <script src="script.js"></script>
 
 </body>
+
 </html>
