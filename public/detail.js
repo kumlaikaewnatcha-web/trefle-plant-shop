@@ -13,29 +13,6 @@ const detail =
         "plantDetail"
     );
 
-document
-    .getElementById("backToSearch")
-    .addEventListener("click", returnToPreviousPage);
-
-
-function returnToPreviousPage() {
-    const referrer = document.referrer;
-
-    if (referrer) {
-        try {
-            if (new URL(referrer).origin === window.location.origin) {
-                window.history.back();
-                return;
-            }
-        } catch (error) {
-            console.error("Unable to read previous page:", error);
-        }
-    }
-
-    window.location.href = "index.html";
-}
-
-
 async function loadPlantDetail() {
 
     if (!slug) {
@@ -244,7 +221,6 @@ function displayPlantDetail(
 
 
 function displayPlantCare(plant) {
-
     const growth =
         plant.main_species?.growth ||
         plant.growth ||
@@ -252,11 +228,7 @@ function displayPlantCare(plant) {
 
     const sections = [
         createCareSection("แสงแดด", [
-            createScaleMetric(
-                "ความต้องการแสง",
-                growth.light,
-                "10 = แดดจัด (ประมาณ 100,000 lux ขึ้นไป)"
-            )
+            createScaleMetric("ความต้องการแสง", growth.light)
         ]),
         createCareSection("น้ำและความชื้น", [
             createScaleMetric("ความชื้นในอากาศ", growth.atmospheric_humidity),
@@ -290,55 +262,137 @@ function displayPlantCare(plant) {
         return;
     }
 
-    const care =
-        document.createElement("section");
-
+    const care = document.createElement("section");
     care.className = "plant-care";
 
-    const heading =
-        document.createElement("h3");
-
+    const heading = document.createElement("h3");
     heading.textContent = "ข้อมูลการดูแล";
-
     care.appendChild(heading);
 
-    const grid =
-        document.createElement("div");
-
+    const grid = document.createElement("div");
     grid.className = "care-grid";
     grid.append(...sections);
-
     care.appendChild(grid);
     detail.appendChild(care);
-
 }
 
 
-function createCareSection(title, metrics) {
-
-    const availableMetrics = metrics.filter(Boolean);
-
-    if (availableMetrics.length === 0) {
-        return null;
+// ฟังก์ชันช่วยแปลผลค่าตัวเลขเป็นข้อความและคำแนะนำ
+function getStatusDetails(label, value) {
+    const score = Number(value);
+    if (label.includes("แสง")) {
+        if (score >= 8) return { text: "แสงแดดปานกลาง-จัด", tip: "ต้องการแสงแดดโดยตรงในช่วงเช้า 4-6 ชั่วโมง เหมาะกับริมระเบียง" };
+        if (score >= 5) return { text: "แสงรำไร", tip: "ชอบแสงแดดอ่อนๆ วางใกล้หน้าต่างที่แสงส่องถึง" };
+        return { text: "แสงน้อย", tip: "อยู่รอดได้ในที่แสงน้อย ระวังอย่าให้โดนแดดจัดโดยตรง" };
     }
+    if (label.includes("น้ำ") || label.includes("ความชื้น")) {
+        if (score >= 8) return { text: "ต้องการน้ำมาก", tip: "รดน้ำทุกวัน หรือเมื่อผิวดินเริ่มแห้ง ชอบความชื้นสูง" };
+        if (score >= 4) return { text: "ต้องการน้ำปานกลาง", tip: "รดน้ำสัปดาห์ละ 1-2 ครั้ง รอให้ผิวดินแห้งลึกลงไป 1-2 นิ้วค่อยรดซ้ำ" };
+        return { text: "ต้องการน้ำน้อย", tip: "ทนแล้งได้ดี รดน้ำเมื่อดินแห้งสนิทเท่านั้น ระวังรากเน่า" };
+    }
+    if (label.includes("สารอาหาร") || label.includes("ดิน")) {
+        if (score >= 7) return { text: "ต้องการสารอาหารสูง", tip: "ใช้ดินร่วนซุยที่อุดมสมบูรณ์ แนะนำให้ใส่ปุ๋ยทุกๆ 1-2 เดือน" };
+        if (score >= 4) return { text: "สารอาหารปานกลาง", tip: "ใช้ดินร่วนโปร่ง (pH 7-7.5) ระบายน้ำดี แนะนำให้เติมปุ๋ยละลายช้าทุกๆ 3 เดือน" };
+        return { text: "สารอาหารน้อย", tip: "ปลูกได้ในดินทั่วไป ไม่ต้องการปุ๋ยมาก" };
+    }
+    return { text: "ปานกลาง", tip: "ดูแลตามสภาพอากาศทั่วไป" };
+}
 
-    const section =
-        document.createElement("section");
+function createCareSection(title, metrics) {
+    const availableMetrics = metrics.filter(Boolean);
+    if (availableMetrics.length === 0) return null;
 
-    section.className = "care-section";
+    const section = document.createElement("section");
 
-    const heading =
-        document.createElement("h4");
+    // กำหนด Theme สีและไอคอนตามหัวข้อ
+    let themeClass = "";
+    let iconChar = "🌿";
+    if (title.includes("แสง")) { themeClass = "theme-yellow"; iconChar = "☀️"; }
+    else if (title.includes("น้ำ")) { themeClass = "theme-blue"; iconChar = "💧"; }
+    else if (title.includes("ดิน")) { themeClass = "theme-green"; iconChar = "🌱"; }
+    else if (title.includes("เวลา") || title.includes("อุณหภูมิ")) { themeClass = "theme-purple"; iconChar = "📅"; }
 
-    heading.textContent = title;
+    section.className = `care-section ${themeClass}`;
+
+    const heading = document.createElement("h4");
+
+    const iconBox = document.createElement("span");
+    iconBox.className = "care-icon-box";
+    iconBox.textContent = iconChar;
+
+    heading.appendChild(iconBox);
+    heading.appendChild(document.createTextNode(` ${title}`));
     section.appendChild(heading);
 
-    availableMetrics.forEach(metric => {
-        section.appendChild(metric);
-    });
+    availableMetrics.forEach(metric => section.appendChild(metric));
 
     return section;
+}
 
+function createScaleMetric(label, value, note) {
+    if (!hasValue(value) || !Number.isFinite(Number(value))) return null;
+
+    const metric = document.createElement("div");
+    metric.className = "care-metric";
+
+    const score = Math.min(10, Math.max(0, Number(value)));
+    const details = getStatusDetails(label, score);
+
+    // ส่วนหัว (Label + Score)
+    const headerDiv = document.createElement("div");
+    headerDiv.className = "metric-header";
+
+    const labelSpan = document.createElement("span");
+    labelSpan.className = "care-label";
+    labelSpan.textContent = label;
+
+    const scoreSpan = document.createElement("span");
+    scoreSpan.className = "score-text";
+    scoreSpan.innerHTML = `<strong>${score}</strong> / 10`;
+
+    headerDiv.append(labelSpan, scoreSpan);
+
+    // ข้อความสถานะ (เช่น "แสงแดดปานกลาง-จัด")
+    const statusText = document.createElement("p");
+    statusText.className = "status-text";
+    statusText.textContent = details.text;
+
+    const icon = getCareIcon(label);
+    const activeIcons = Math.round(score);
+    const iconScale = document.createElement("div");
+    iconScale.className = "care-icon-scale";
+    iconScale.setAttribute("role", "img");
+    iconScale.setAttribute("aria-label", `${label} ${score} จาก 10`);
+
+    for (let index = 0; index < 10; index += 1) {
+        const iconElement = document.createElement("span");
+        iconElement.className = "care-scale-icon";
+        if (index >= activeIcons) {
+            iconElement.classList.add("is-muted");
+        }
+        iconElement.textContent = icon;
+        iconScale.appendChild(iconElement);
+    }
+
+    // กล่องคำแนะนำ (Care Tip Box)
+    const tipBox = document.createElement("div");
+    tipBox.className = "care-tip-box";
+    const tipIcon = document.createElement("span");
+    tipIcon.className = "tip-icon";
+    tipIcon.textContent = "ⓘ";
+    const tipText = document.createElement("p");
+    tipText.textContent = details.tip;
+    tipBox.append(tipIcon, tipText);
+
+    metric.append(headerDiv, statusText, iconScale, tipBox);
+    return metric;
+}
+
+function getCareIcon(label) {
+    if (label.includes("แสง")) return "☀️";
+    if (label.includes("น้ำ") || label.includes("ความชื้น")) return "💧";
+    if (label.includes("ดิน") || label.includes("สารอาหาร")) return "🌱";
+    return "🌿";
 }
 
 
@@ -366,50 +420,6 @@ function createMetric(label, value) {
     result.textContent = String(value);
 
     metric.append(name, result);
-    return metric;
-
-}
-
-
-function createScaleMetric(label, value, note) {
-
-    if (!hasValue(value) || !Number.isFinite(Number(value))) {
-        return null;
-    }
-
-    const metric =
-        document.createElement("div");
-
-    metric.className = "care-metric";
-
-    const name =
-        document.createElement("span");
-
-    name.className = "care-label";
-    name.textContent = `${label} (0-10)`;
-
-    metric.appendChild(name);
-
-    const score = Math.min(10, Math.max(0, Number(value)));
-    const scoreText = document.createElement("p");
-    scoreText.className = "care-value";
-    scoreText.textContent = `${value} / 10`;
-
-    const meter = document.createElement("progress");
-    meter.className = "care-meter";
-    meter.max = 10;
-    meter.value = score;
-    meter.setAttribute("aria-label", `${label} ${value} จาก 10`);
-
-    metric.append(scoreText, meter);
-
-    if (note) {
-        const hint = document.createElement("span");
-        hint.className = "care-note";
-        hint.textContent = note;
-        metric.appendChild(hint);
-    }
-
     return metric;
 
 }

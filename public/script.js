@@ -10,6 +10,9 @@ const plantList =
 const recommendationList =
     document.getElementById("recommendationList");
 
+const recommendationSection =
+    recommendationList.closest(".result-section");
+
 const SEARCH_STATE_KEY = "treflePlantSearchState";
 let activeSearchId = 0;
 
@@ -40,6 +43,7 @@ async function searchPlants() {
     const query =
         searchInput.value.trim();
 
+    recommendationSection.hidden = Boolean(query);
 
     if (!query) {
 
@@ -476,6 +480,7 @@ function restoreSearchState() {
         }
 
         searchInput.value = savedState.query;
+        recommendationSection.hidden = Boolean(savedState.query.trim());
 
         if (Array.isArray(savedState.plants)) {
             displayPlants(savedState.plants, savedState.selectedSlug);
