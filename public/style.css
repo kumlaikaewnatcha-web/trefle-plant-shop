@@ -934,6 +934,12 @@ body {
     line-height: 1.6;
 }
 
+.empty-state .favorites-link {
+    display: flex;
+    width: fit-content;
+    margin: 18px auto 0;
+}
+
 .footer {
     display: flex;
     flex-direction: column;
