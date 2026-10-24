@@ -1,3 +1,4 @@
+// # โหลดรายการต้นไม้โปรดจาก API และสร้างการ์ดสำหรับจัดการแต่ละรายการ
 const favoriteList =
     document.getElementById(
         "favoriteList"
@@ -8,6 +9,7 @@ const favoriteList =
     โหลดรายการ Favorite
 */
 
+// # ขอรายการ Favorite และแสดงสถานะกำลังโหลดหรือข้อผิดพลาด
 async function loadFavorites() {
 
     try {
@@ -96,6 +98,7 @@ async function loadFavorites() {
     แสดงรายการ Favorite
 */
 
+// # วาดการ์ดต้นไม้โปรด พร้อมทางไปหน้ารายละเอียดและปุ่มนำออก
 function displayFavorites(
     favorites
 ) {
@@ -350,6 +353,7 @@ function displayFavorites(
     ลบ Favorite
 */
 
+// # ส่งคำขอลบ Favorite แล้วนำการ์ดออกจากหน้าเมื่อสำเร็จ
 async function removeFavorite(
     slug,
     card
@@ -472,6 +476,7 @@ async function removeFavorite(
     ไปหน้ารายละเอียด
 */
 
+// # บันทึกต้นไม้ที่เลือกแล้วเปิดหน้ารายละเอียด
 function viewDetail(
     slug
 ) {

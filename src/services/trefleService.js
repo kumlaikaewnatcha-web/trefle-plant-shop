@@ -1,44 +1,65 @@
+// # ติดต่อ Trefle API เพื่อค้นหา ดึงรายละเอียด และจัดดอกไม้แนะนำ
 const TREFLE_BASE_URL = "https://trefle.io/api/v1";
+// # รายชื่อคำค้นที่ใช้รวบรวมดอกไม้หลากหลายชนิดสำหรับคำแนะนำ
 const RECOMMENDED_FLOWER_SEARCHES = ["rose", "tulip", "orchid", "daisy", "sunflower"];
+// # เก็บผลแนะนำไว้ 30 นาทีเพื่อลดการเรียก API ซ้ำ
 const RECOMMENDATION_CACHE_TTL = 30 * 60 * 1000;
 let recommendationCache = {
     expiresAt: 0,
     plants: null
 };
 
+// # รวมการสร้าง URL การตรวจสถานะ และจัดการข้อผิดพลาดของ Trefle ไว้จุดเดียว
+async function requestTrefle(path, params = {}) {
+    const token = process.env.TREFLE_TOKEN;
+
+    if (!token) {
+        const error = new Error("TREFLE_TOKEN is not configured");
+        error.statusCode = 503;
+        throw error;
+    }
+
+    const url = new URL(`${TREFLE_BASE_URL}${path}`);
+    url.searchParams.set("token", token);
+    Object.entries(params).forEach(([key, value]) => {
+        url.searchParams.set(key, value);
+    });
+
+    let response;
+    try {
+        response = await fetch(url);
+    } catch (cause) {
+        const error = new Error("Unable to reach Trefle API", { cause });
+        error.statusCode = 502;
+        throw error;
+    }
+
+    if (!response.ok) {
+        const error = new Error(`Trefle API returned ${response.status}`);
+        error.statusCode = response.status === 404 ? 404 : 502;
+        throw error;
+    }
+
+    try {
+        return await response.json();
+    } catch (cause) {
+        const error = new Error("Trefle API returned invalid JSON", { cause });
+        error.statusCode = 502;
+        throw error;
+    }
+}
+
+// # ค้นหาต้นไม้ตามคำค้น และส่งต่อข้อผิดพลาดเมื่อ Trefle ตอบไม่สำเร็จ
 async function searchPlants(query) {
-    const url =
-        `${TREFLE_BASE_URL}/plants/search` +
-        `?token=${process.env.TREFLE_TOKEN}` +
-        `&q=${encodeURIComponent(query)}`;
-
-    const response = await fetch(url);
-
-    if (!response.ok) {
-        throw new Error(`Trefle API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    return data;
+    return requestTrefle("/plants/search", { q: query });
 }
 
+// # ขอรายละเอียดต้นไม้รายต้นด้วย slug
 async function getPlantDetail(slug) {
-    const url =
-        `${TREFLE_BASE_URL}/plants/${encodeURIComponent(slug)}` +
-        `?token=${process.env.TREFLE_TOKEN}`;
-
-    const response = await fetch(url);
-
-    if (!response.ok) {
-        throw new Error(`Trefle API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    return data;
+    return requestTrefle(`/plants/${encodeURIComponent(slug)}`);
 }
 
+// # รวบรวมดอกไม้จากหลายคำค้น เติมรายละเอียด เรียงตามข้อมูลดูแล และแคชผล
 async function getFlowerRecommendations() {
     if (recommendationCache.plants && recommendationCache.expiresAt > Date.now()) {
         return recommendationCache.plants;
@@ -97,6 +118,7 @@ async function getFlowerRecommendations() {
     return recommendationCache.plants;
 }
 
+// # ให้คะแนนความครบถ้วนของข้อมูลดูแลเพื่อจัดอันดับคำแนะนำ
 function getCareCompleteness(plant) {
     const growth = plant.main_species?.growth || plant.growth || {};
     const hasNumber = value => value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
@@ -123,6 +145,7 @@ function getCareCompleteness(plant) {
     return careFields.filter(Boolean).length;
 }
 
+// # ตรวจว่าค่าข้อมูลมีเนื้อหาจริง ไม่ใช่ค่าว่าง
 function hasContent(value) {
     if (typeof value === "string") {
         return value.trim() !== "";

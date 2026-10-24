@@ -1,3 +1,4 @@
+/* # รูปแบบร่วมของหน้าเว็บ ตั้งแต่ส่วนหัว การ์ด ไปจนถึงจอขนาดเล็ก */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -22,9 +23,7 @@ body {
 }
 
 
-/* =========================
-   Header
-========================= */
+/* # ส่วนหัว แบรนด์ และลิงก์นำทาง */
 
 .header {
     background:
@@ -65,6 +64,13 @@ body {
 
     justify-content:
         space-between;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
 }
 
 
@@ -154,10 +160,40 @@ body {
         #dcefd4;
 }
 
+.favorites-link[aria-current="page"] {
+    background: #dcefd4;
+}
 
-/* =========================
-   Main
-========================= */
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.pagination-controls[hidden] {
+    display: none;
+}
+
+.pagination-controls .primary-button {
+    min-height: 42px;
+}
+
+.pagination-controls .primary-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.pagination-controls span {
+    color: #536b55;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+
+/* # กำหนดความกว้างและระยะห่างของเนื้อหาหลัก */
 
 .container {
     max-width:
@@ -171,9 +207,7 @@ body {
 }
 
 
-/* =========================
-   Hero
-========================= */
+/* # พื้นที่แนะนำเว็บไซต์พร้อมวิดีโอพื้นหลังและข้อความ */
 
 .hero {
     min-height:
@@ -183,11 +217,7 @@ body {
         32px;
 
     background:
-        linear-gradient(
-            135deg,
-            #e5f2dc,
-            #f7f4df
-        );
+        #26382b;
 
     padding:
         55px;
@@ -206,6 +236,27 @@ body {
 
     position:
         relative;
+}
+
+.hero-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.hero::before {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+        linear-gradient(90deg, rgba(19, 39, 26, 0.88) 0%, rgba(26, 48, 32, 0.72) 48%, rgba(31, 53, 36, 0.28) 100%),
+        linear-gradient(0deg, rgba(20, 38, 26, 0.2), rgba(20, 38, 26, 0.08));
+    content: "";
 }
 
 
@@ -232,10 +283,10 @@ body {
         999px;
 
     background:
-        rgba(255,255,255,0.7);
+        rgba(255,255,255,0.16);
 
     color:
-        #5b7b5e;
+        #e1f1d9;
 
     font-size:
         12px;
@@ -258,20 +309,26 @@ body {
     line-height:
         1.05;
 
+    color:
+        #fff;
+
     margin-bottom:
         20px;
+
+    text-shadow:
+        0 2px 18px rgba(0, 0, 0, 0.2);
 }
 
 
 .hero h2 span {
     color:
-        #6f9b68;
+        #c8e7b6;
 }
 
 
 .hero p {
     color:
-        #66796a;
+        rgba(255, 255, 255, 0.84);
 
     line-height:
         1.7;
@@ -295,7 +352,16 @@ body {
         50%;
 
     background:
-        rgba(255,255,255,0.45);
+        rgba(255,255,255,0.12);
+
+    border:
+        1px solid rgba(255,255,255,0.22);
+
+    position:
+        relative;
+
+    z-index:
+        2;
 
     display:
         flex;
@@ -338,9 +404,7 @@ body {
 }
 
 
-/* =========================
-   Search
-========================= */
+/* # ช่องค้นหา ปุ่มค้นหา และปุ่มล้างคำค้นหา */
 
 .search-box {
     display:
@@ -416,10 +480,35 @@ body {
         translateY(-2px);
 }
 
+.primary-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
 
-/* =========================
-   Results
-========================= */
+.clear-search-button {
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 999px;
+    padding: 0 18px;
+    background: rgba(255, 255, 255, 0.14);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.clear-search-button:hover {
+    background: rgba(255, 255, 255, 0.26);
+    transform: translateY(-2px);
+}
+
+.history-viewed-at {
+    margin: 0 5px 18px;
+    color: #718174;
+    font-size: 13px;
+}
+
+/* # หัวข้อและป้ายกำกับของส่วนผลลัพธ์ */
 
 .result-section {
     margin-top:
@@ -487,9 +576,7 @@ body {
 }
 
 
-/* =========================
-   Plant Grid
-========================= */
+/* # ตารางการ์ดต้นไม้ รูปภาพ ชื่อ และปุ่มจัดการ */
 
 .plant-grid {
     display:
@@ -573,6 +660,22 @@ body {
 
     margin-bottom:
         18px;
+}
+
+.plant-image-fallback {
+    width: 100%;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    background: #edf3e9;
+    font-size: 42px;
+    margin-bottom: 18px;
+}
+
+.plant-image-fallback[hidden] {
+    display: none;
 }
 
 
@@ -681,9 +784,7 @@ body {
 }
 
 
-/* =========================
-   Plant Care (ดีไซน์ใหม่)
-========================= */
+/* # การ์ดข้อมูลการดูแลต้นไม้และเอฟเฟกต์ประกอบ */
 .plant-care {
     margin-top: 40px;
     border-top: 2px dashed #e2eadc;
@@ -697,20 +798,23 @@ body {
 }
 
 .care-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px; /* เพิ่มระยะห่างระหว่างการ์ด */
+    columns: 2;
+    column-gap: 20px;
 }
 
 /* --- การ์ดแต่ละใบ --- */
 .care-section {
+    display: inline-block;
+    width: 100%;
     min-width: 0;
+    margin-bottom: 20px;
     padding: 24px;
     border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 20px; /* ขอบมนขึ้น */
     background: linear-gradient(145deg, #ffffff, #f7f9f5); /* ไล่สีพื้นหลังการ์ด */
     box-shadow: 0 8px 24px rgba(66, 91, 66, 0.06); /* เงาฟุ้งๆ ดูนุ่มนวล */
     transition: all 0.3s ease; /* เตรียมทำอนิเมชัน */
+    break-inside: avoid;
 }
 
 /* เอฟเฟกต์ตอนเอาเมาส์ชี้การ์ด */
@@ -736,9 +840,24 @@ body {
     justify-content: center;
     width: 36px;
     height: 36px;
+    flex: 0 0 auto;
     background: #eaf3e5;
     border-radius: 12px;
     font-size: 18px;
+    transition: transform 250ms ease, box-shadow 250ms ease;
+}
+
+.care-section:hover .care-icon-box {
+    animation: care-category-glow 900ms ease;
+    box-shadow: 0 0 8px rgba(139, 195, 74, 0.55);
+    transform: translateY(-2px) scale(1.12);
+}
+
+@keyframes care-category-glow {
+    35% {
+        box-shadow: 0 0 14px rgba(139, 195, 74, 0.65);
+        transform: translateY(-3px) scale(1.18);
+    }
 }
 
 .care-metric + .care-metric {
@@ -775,13 +894,11 @@ body {
 /* จัด Layout สำหรับจอมือถือ */
 @media (max-width: 600px) {
     .care-grid {
-        grid-template-columns: 1fr;
+        columns: 1;
     }
 }
 
-/* =========================
-   Shared states and layout
-========================= */
+/* # รูปแบบสถานะว่าง กำลังโหลด ผิดพลาด และส่วนท้าย */
 .empty-state,
 .loading-state,
 .error-state,
@@ -844,6 +961,26 @@ body {
     color: #26382b;
 }
 
+.corner-back-button {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 12px 18px;
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow: 0 5px 18px rgba(38, 56, 43, 0.18);
+}
+
+.corner-back-button:hover {
+    background: #edf6e9;
+}
+
+/* # รูปแบบหน้ารายละเอียด ตราสถานะข้อมูล และคำแนะนำการดูแล */
 .detail-card {
     max-width: 860px;
     margin: 0 auto;
@@ -908,20 +1045,58 @@ body {
 }
 
 .care-icon-scale {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
     margin-top: 10px;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    text-align: inherit;
+}
+
+.care-icon-list {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    align-items: center;
+    justify-items: center;
+    min-width: 0;
 }
 
 .care-scale-icon {
-    font-size: 21px;
+    font-size: 17px;
     line-height: 1.2;
+    transition: transform 300ms ease, filter 300ms ease;
+}
+
+.care-scale-endpoint {
+    color: #718174;
+    font-size: 12px;
+    white-space: nowrap;
 }
 
 .care-scale-icon.is-muted {
     filter: grayscale(1);
     opacity: 0.28;
+}
+
+.care-section:hover .care-scale-icon {
+    animation: care-rating-glow 900ms ease both;
+}
+
+@keyframes care-rating-glow {
+    0%,
+    100% {
+        filter: drop-shadow(0 0 0 transparent);
+        transform: translateY(0) scale(1);
+    }
+
+    40% {
+        filter: drop-shadow(0 0 5px rgba(139, 195, 74, 0.9));
+        transform: translateY(-4px) scale(1.2);
+    }
 }
 
 .care-tip-box {
@@ -963,7 +1138,9 @@ body {
     background: #f0eafb;
 }
 
+/* # แสดงกรอบโฟกัสให้ผู้ใช้คีย์บอร์ดมองเห็นตำแหน่งปัจจุบัน */
 .primary-button:focus-visible,
+.clear-search-button:focus-visible,
 .secondary-button:focus-visible,
 .favorite-button:focus-visible,
 .favorites-link:focus-visible,
@@ -973,6 +1150,7 @@ body {
     outline-offset: 3px;
 }
 
+/* # ปรับตารางและส่วนหัวให้เหมาะกับแท็บเล็ตและมือถือ */
 @media (max-width: 900px) {
     .plant-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -989,7 +1167,13 @@ body {
     }
 
     .nav {
+        flex-wrap: wrap;
+        gap: 12px;
         padding: 14px 15px;
+    }
+
+    .brand {
+        flex: 1 1 100%;
     }
 
     .brand h1 {
@@ -999,6 +1183,20 @@ body {
     .favorites-link {
         padding: 9px 12px;
         font-size: 13px;
+    }
+
+    .nav-actions {
+        width: 100%;
+        gap: 6px;
+        flex-direction: row;
+        align-items: stretch;
+    }
+
+    .nav-actions .favorites-link {
+        flex: 1;
+        padding: 9px 8px;
+        text-align: center;
+        white-space: nowrap;
     }
 
     .hero {
@@ -1015,8 +1213,18 @@ body {
         flex-direction: column;
     }
 
+    .pagination-controls {
+        gap: 8px;
+    }
+
+    .pagination-controls .primary-button {
+        padding: 0 14px;
+        font-size: 13px;
+    }
+
     .search-box input,
-    .primary-button {
+    .primary-button,
+    .clear-search-button {
         min-height: 48px;
     }
 
@@ -1060,11 +1268,13 @@ body {
     }
 }
 
+/* # ลดภาพเคลื่อนไหวเมื่อผู้ใช้ตั้งค่าการเข้าถึงให้ลด motion */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
         scroll-behavior: auto !important;
         transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
     }
 }

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- # หน้าแสดงรายละเอียดและข้อมูลการดูแลต้นไม้หนึ่งรายการ -->
 <html lang="en">
 
 <head>
@@ -24,6 +25,13 @@
 
 <body>
 
+    <!-- # ปุ่มย้อนกลับประจำหน้ารอง กลับหน้าก่อนหน้าหรือหน้าแรก -->
+    <a href="index.html" class="back-button corner-back-button" data-back-button aria-label="Back">
+        <span aria-hidden="true">←</span>
+        Back
+    </a>
+
+    <!-- # ส่วนหัวเว็บไซต์พร้อมลิงก์ไปยังประวัติและรายการโปรด -->
     <header class="header">
 
         <div class="nav">
@@ -49,27 +57,18 @@
             </div>
 
 
-            <a
-                href="favorites.html"
-                class="favorites-link"
-            >
-                ❤️ Favorites
-            </a>
+            <div class="nav-actions">
+                <a href="history.html" class="favorites-link">🕘 ประวัติการดู</a>
+                <a href="favorites.html" class="favorites-link">❤️ Favorites</a>
+            </div>
 
         </div>
 
     </header>
 
 
+    <!-- # detail.js แทนที่สถานะกำลังโหลดด้วยข้อมูลต้นไม้ -->
     <main class="container">
-
-        <a
-            class="back-button"
-            href="index.html"
-        >
-            ← Back
-        </a>
-
 
         <div
             id="plantDetail"
@@ -101,7 +100,9 @@
 
     </footer>
 
-
+    <!-- # โหลดตัวบันทึกประวัติ ปุ่มย้อนกลับ และรายละเอียดต้นไม้ตามลำดับ -->
+    <script src="viewHistory.js"></script>
+    <script src="backNavigation.js"></script>
     <script src="detail.js"></script>
 
 </body>

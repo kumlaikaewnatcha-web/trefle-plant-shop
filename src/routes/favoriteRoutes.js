@@ -1,3 +1,4 @@
+// # กำหนด API endpoints สำหรับเพิ่ม ดู ตรวจสอบ และลบรายการ Favorite
 const express = require("express");
 const router = express.Router();
 
@@ -8,89 +9,32 @@ const {
     isFavorite
 } = require("../services/favoriteService");
 
-// เพิ่มต้นไม้ใน Favorite
+// # ตรวจข้อมูลต้นไม้และเพิ่มต้นไม้ในรายการ Favorite
 router.post("/", (req, res) => {
-    try {
-        const plant = req.body;
+    const plant = req.body;
 
-        if (!plant || !plant.slug) {
-            return res.status(400).json({
-                error: "ข้อมูลต้นไม้ไม่ถูกต้อง"
-            });
-        }
-
-        addFavorite(plant);
-
-        res.json({
-            message: "เพิ่ม Favorite สำเร็จ",
-            data: plant
-        });
-
-    } catch (error) {
-        console.error(error);
-
-        res.status(500).json({
-            error: "ไม่สามารถเพิ่ม Favorite ได้"
-        });
+    if (!plant || typeof plant.slug !== "string" || !plant.slug.trim()) {
+        return res.status(400).json({ error: "ข้อมูลต้นไม้ไม่ถูกต้อง" });
     }
+
+    addFavorite(plant);
+    res.status(201).json({ data: plant });
 });
 
-// ดูรายการ Favorite ทั้งหมด
+// # คืนรายการต้นไม้ทั้งหมดที่อยู่ใน Favorite
 router.get("/", (req, res) => {
-    try {
-        const favorites = getFavorites();
-
-        res.json({
-            data: favorites
-        });
-
-    } catch (error) {
-        console.error(error);
-
-        res.status(500).json({
-            error: "ไม่สามารถดึงรายการ Favorite ได้"
-        });
-    }
+    res.json({ data: getFavorites() });
 });
 
-// ตรวจสอบว่าเป็น Favorite หรือไม่
+// # ตรวจว่าต้นไม้ตาม slug อยู่ใน Favorite หรือไม่
 router.get("/:slug", (req, res) => {
-    try {
-        const { slug } = req.params;
-
-        const favorite = isFavorite(slug);
-
-        res.json({
-            favorite: favorite
-        });
-
-    } catch (error) {
-        console.error(error);
-
-        res.status(500).json({
-            error: "ไม่สามารถตรวจสอบ Favorite ได้"
-        });
-    }
+    res.json({ favorite: isFavorite(req.params.slug) });
 });
 
-// ลบต้นไม้ออกจาก Favorite
+// # นำต้นไม้ออกจาก Favorite ด้วย slug
 router.delete("/:slug", (req, res) => {
-    try {
-        const { slug } = req.params;
-
-        removeFavorite(slug);
-
-        res.json({
-            message: "ลบ Favorite สำเร็จ"
-        });
-
-    } catch (error) {
-        console.error(error);
-
-        res.status(500).json({
-            error: "ไม่สามารถลบ Favorite ได้"
-        });
-    }
+    removeFavorite(req.params.slug);
+    res.status(204).end();
 });
 
 module.exports = router;

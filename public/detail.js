@@ -1,10 +1,13 @@
+// # โหลดและแสดงข้อมูลต้นไม้รายต้น รวมถึงข้อมูลดูแลและการจัดการ Favorite
 const params =
     new URLSearchParams(
         window.location.search
     );
 
 
+// # อ่านรหัสต้นไม้จาก URL ซึ่งรองรับทั้งพารามิเตอร์ id และ slug
 const slug =
+    params.get("id") ||
     params.get("slug");
 
 
@@ -13,6 +16,7 @@ const detail =
         "plantDetail"
     );
 
+// # ขอข้อมูลต้นไม้จาก API ตรวจสอบข้อมูล แล้วบันทึกลงประวัติการดู
 async function loadPlantDetail() {
 
     if (!slug) {
@@ -52,7 +56,7 @@ async function loadPlantDetail() {
 
         if (
             !plant ||
-            !plant.common_name
+            (!plant.common_name && !plant.scientific_name)
         ) {
 
             throw new Error(
@@ -65,6 +69,8 @@ async function loadPlantDetail() {
         displayPlantDetail(
             plant
         );
+
+        window.plantViewHistory.record(plant);
 
 
     } catch (error) {
@@ -81,6 +87,7 @@ async function loadPlantDetail() {
 }
 
 
+// # สร้างส่วนแสดงรูป ชื่อ และปุ่ม Favorite ของต้นไม้
 function displayPlantDetail(
     plant
 ) {
@@ -104,7 +111,8 @@ function displayPlantDetail(
 
 
     image.alt =
-        plant.common_name;
+        plant.common_name ||
+        plant.scientific_name;
 
 
     image.onerror =
@@ -139,7 +147,8 @@ function displayPlantDetail(
 
 
     title.textContent =
-        plant.common_name;
+        plant.common_name ||
+        plant.scientific_name;
 
 
     // ชื่อวิทยาศาสตร์
@@ -220,6 +229,7 @@ function displayPlantDetail(
 }
 
 
+// # แบ่งข้อมูลการเติบโตเป็นหมวดหมู่การดูแลและแสดงเฉพาะค่าที่มี
 function displayPlantCare(plant) {
     const growth =
         plant.main_species?.growth ||
@@ -277,7 +287,7 @@ function displayPlantCare(plant) {
 }
 
 
-// ฟังก์ชันช่วยแปลผลค่าตัวเลขเป็นข้อความและคำแนะนำ
+// # แปลคะแนนการดูแลเป็นสถานะและคำแนะนำที่อ่านเข้าใจง่าย
 function getStatusDetails(label, value) {
     const score = Number(value);
     if (label.includes("แสง")) {
@@ -298,6 +308,7 @@ function getStatusDetails(label, value) {
     return { text: "ปานกลาง", tip: "ดูแลตามสภาพอากาศทั่วไป" };
 }
 
+// # สร้างการ์ดหมวดการดูแล พร้อมสี ไอคอน และรายการข้อมูล
 function createCareSection(title, metrics) {
     const availableMetrics = metrics.filter(Boolean);
     if (availableMetrics.length === 0) return null;
@@ -313,8 +324,8 @@ function createCareSection(title, metrics) {
     else if (title.includes("เวลา") || title.includes("อุณหภูมิ")) { themeClass = "theme-purple"; iconChar = "📅"; }
 
     section.className = `care-section ${themeClass}`;
-
     const heading = document.createElement("h4");
+    heading.setAttribute("aria-label", title);
 
     const iconBox = document.createElement("span");
     iconBox.className = "care-icon-box";
@@ -329,6 +340,7 @@ function createCareSection(title, metrics) {
     return section;
 }
 
+// # สร้างรายการคะแนน 0–10 พร้อมไอคอนและคำแนะนำประกอบ
 function createScaleMetric(label, value, note) {
     if (!hasValue(value) || !Number.isFinite(Number(value))) return null;
 
@@ -364,6 +376,14 @@ function createScaleMetric(label, value, note) {
     iconScale.setAttribute("role", "img");
     iconScale.setAttribute("aria-label", `${label} ${score} จาก 10`);
 
+    const lowLabel = document.createElement("span");
+    lowLabel.className = "care-scale-endpoint";
+    lowLabel.textContent = "น้อย";
+
+    const iconList = document.createElement("span");
+    iconList.className = "care-icon-list";
+    iconList.setAttribute("aria-hidden", "true");
+
     for (let index = 0; index < 10; index += 1) {
         const iconElement = document.createElement("span");
         iconElement.className = "care-scale-icon";
@@ -371,8 +391,14 @@ function createScaleMetric(label, value, note) {
             iconElement.classList.add("is-muted");
         }
         iconElement.textContent = icon;
-        iconScale.appendChild(iconElement);
+        iconList.appendChild(iconElement);
     }
+
+    const highLabel = document.createElement("span");
+    highLabel.className = "care-scale-endpoint";
+    highLabel.textContent = "มาก";
+
+    iconScale.append(lowLabel, iconList, highLabel);
 
     // กล่องคำแนะนำ (Care Tip Box)
     const tipBox = document.createElement("div");
@@ -388,14 +414,17 @@ function createScaleMetric(label, value, note) {
     return metric;
 }
 
+// # เลือกไอคอนให้ตรงกับประเภทข้อมูลการดูแล
 function getCareIcon(label) {
     if (label.includes("แสง")) return "☀️";
+    if (label.includes("ความชื้นในดิน")) return "🪴";
     if (label.includes("น้ำ") || label.includes("ความชื้น")) return "💧";
     if (label.includes("ดิน") || label.includes("สารอาหาร")) return "🌱";
     return "🌿";
 }
 
 
+// # สร้างรายการข้อมูลข้อความทั่วไป และข้ามเมื่อไม่มีข้อมูล
 function createMetric(label, value) {
 
     if (!hasValue(value)) {
@@ -425,6 +454,7 @@ function createMetric(label, value) {
 }
 
 
+// # ตรวจว่าค่าไม่ใช่ค่าว่างก่อนนำไปแสดงผล
 function hasValue(value) {
     return value !== null &&
         value !== undefined &&
@@ -432,6 +462,7 @@ function hasValue(value) {
 }
 
 
+// # จัดรูปแบบค่าต่ำสุดและสูงสุดให้อยู่ในรูปช่วง
 function formatRange(minimum, maximum) {
 
     if (!hasValue(minimum) && !hasValue(maximum)) {
@@ -447,6 +478,7 @@ function formatRange(minimum, maximum) {
 }
 
 
+// # แปลงช่วงอุณหภูมิเป็นข้อความพร้อมหน่วยองศา
 function formatTemperatureRange(minimum, maximum) {
 
     const celsius = formatRange(minimum?.deg_c, maximum?.deg_c);
@@ -461,6 +493,7 @@ function formatTemperatureRange(minimum, maximum) {
 }
 
 
+// # แปลงรหัสเดือนจาก API ให้เป็นชื่อเดือนที่อ่านง่าย
 function formatMonths(months) {
 
     if (!Array.isArray(months) || months.length === 0) {
@@ -504,6 +537,7 @@ function formatMonths(months) {
     ตรวจสอบ Favorite
 */
 
+// # ตรวจสถานะ Favorite ของต้นไม้จาก API
 async function checkFavorite(slug) {
 
     try {
@@ -541,6 +575,7 @@ async function checkFavorite(slug) {
     อัปเดตปุ่ม Favorite
 */
 
+// # ปรับข้อความและสีของปุ่มให้ตรงกับสถานะ Favorite ปัจจุบัน
 async function updateFavoriteButton(
     slug,
     button
@@ -582,6 +617,7 @@ async function updateFavoriteButton(
     เพิ่ม / ลบ Favorite
 */
 
+// # เพิ่มหรือลบต้นไม้จาก Favorite แล้วอัปเดตปุ่ม
 async function toggleFavorite(
     plant,
     button
@@ -705,6 +741,7 @@ async function toggleFavorite(
     แสดง Error
 */
 
+// # แสดงข้อความผิดพลาดในพื้นที่รายละเอียดแทนข้อมูลต้นไม้
 function showError(
     message
 ) {

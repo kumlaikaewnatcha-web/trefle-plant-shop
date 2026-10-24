@@ -1,8 +1,12 @@
+// # ควบคุมการค้นหา คำแนะนำ รายการต้นไม้ และปุ่ม Favorite ในหน้าแรก
 const searchInput =
     document.getElementById("searchInput");
 
 const searchButton =
     document.getElementById("searchButton");
+
+const clearSearchButton =
+    document.getElementById("clearSearchButton");
 
 const plantList =
     document.getElementById("plantList");
@@ -14,6 +18,7 @@ const recommendationSection =
     recommendationList.closest(".result-section");
 
 const SEARCH_STATE_KEY = "treflePlantSearchState";
+// # ใช้ป้องกันผลค้นหาเก่าทับผลใหม่ เมื่อผู้ใช้ค้นหาหลายครั้งติดกัน
 let activeSearchId = 0;
 
 restoreSearchState();
@@ -22,6 +27,16 @@ loadFlowerRecommendations();
 searchButton.addEventListener(
     "click",
     searchPlants
+);
+
+clearSearchButton.addEventListener(
+    "click",
+    clearSearch
+);
+
+searchInput.addEventListener(
+    "input",
+    updateClearSearchButton
 );
 
 
@@ -37,6 +52,7 @@ searchInput.addEventListener(
 );
 
 
+// # ค้นหาต้นไม้จาก API กรองผล เรียงชื่อ และแสดงรายการ
 async function searchPlants() {
 
     const searchId = ++activeSearchId;
@@ -44,6 +60,7 @@ async function searchPlants() {
         searchInput.value.trim();
 
     recommendationSection.hidden = Boolean(query);
+    updateClearSearchButton();
 
     if (!query) {
 
@@ -185,6 +202,34 @@ async function searchPlants() {
 
 }
 
+// # ล้างคำค้นหาและผลลัพธ์ กลับไปแสดงดอกไม้แนะนำ
+function clearSearch() {
+    activeSearchId++;
+    searchInput.value = "";
+    recommendationSection.hidden = false;
+    plantList.innerHTML = `
+        <div class="empty-state">
+            <div class="empty-icon">🌱</div>
+            <h3>Start exploring</h3>
+            <p>Search for a plant name to see the results.</p>
+        </div>
+    `;
+    updateClearSearchButton();
+
+    try {
+        sessionStorage.removeItem(SEARCH_STATE_KEY);
+    } catch (error) {
+        console.error("Unable to clear search state:", error);
+    }
+}
+
+// # แสดงปุ่มล้างเมื่อจำเป็นต้องกลับจากผลค้นหาไปหน้าแนะนำ
+function updateClearSearchButton() {
+    clearSearchButton.hidden =
+        !searchInput.value.trim() && !recommendationSection.hidden;
+}
+
+// # โหลดและแสดงรายการดอกไม้แนะนำจาก API
 async function loadFlowerRecommendations() {
     try {
         const response = await fetch("/api/plants/recommendations");
@@ -207,13 +252,7 @@ async function loadFlowerRecommendations() {
     }
 }
 
-/*
-    Insertion Sort
-
-    เรียงชื่อ common_name
-    จาก A → Z
-*/
-
+// # เรียงต้นไม้ตามชื่อสามัญจาก A ถึง Z ด้วย Insertion Sort
 function insertionSort(plants) {
 
     for (
@@ -257,10 +296,7 @@ function insertionSort(plants) {
 }
 
 
-/*
-    แสดง Plant Card
-*/
-
+// # สร้างการ์ดต้นไม้ในพื้นที่ที่กำหนด รวมปุ่มรายละเอียดและ Favorite
 function displayPlants(plants, selectedSlug = null, target = plantList) {
 
     target.innerHTML = "";
@@ -469,6 +505,7 @@ function displayPlants(plants, selectedSlug = null, target = plantList) {
     highlightSelectedPlant(selectedSlug, target);
 }
 
+// # กู้คำค้นหาและผลลัพธ์ที่บันทึกไว้เมื่อกลับมาหน้าแรก
 function restoreSearchState() {
     try {
         const savedState = JSON.parse(
@@ -481,6 +518,7 @@ function restoreSearchState() {
 
         searchInput.value = savedState.query;
         recommendationSection.hidden = Boolean(savedState.query.trim());
+        updateClearSearchButton();
 
         if (Array.isArray(savedState.plants)) {
             displayPlants(savedState.plants, savedState.selectedSlug);
@@ -490,6 +528,7 @@ function restoreSearchState() {
     }
 }
 
+// # บันทึกสถานะค้นหาไว้ใน sessionStorage
 function saveSearchState(state) {
     try {
         sessionStorage.setItem(SEARCH_STATE_KEY, JSON.stringify(state));
@@ -498,6 +537,7 @@ function saveSearchState(state) {
     }
 }
 
+// # ทำเครื่องหมายการ์ดต้นไม้ที่กำลังเปิดดูรายละเอียด
 function highlightSelectedPlant(slug) {
     plantList.querySelectorAll(".plant-card[data-plant-slug]").forEach(card => {
         const isSelected = Boolean(slug) && card.dataset.plantSlug === slug;
@@ -516,10 +556,7 @@ function highlightSelectedPlant(slug) {
     });
 }
 
-/*
-    ตรวจสอบว่าเป็น Favorite หรือไม่
-*/
-
+// # ตรวจสอบสถานะ Favorite ผ่าน API
 async function checkFavorite(slug) {
 
     try {
@@ -557,10 +594,7 @@ async function checkFavorite(slug) {
 }
 
 
-/*
-    เปลี่ยนข้อความปุ่ม Favorite
-*/
-
+// # ตั้งข้อความและรูปแบบปุ่มตามสถานะ Favorite
 async function updateFavoriteButton(
     slug,
     button
@@ -598,10 +632,7 @@ async function updateFavoriteButton(
 }
 
 
-/*
-    เพิ่ม / ลบ Favorite
-*/
-
+// # สลับสถานะ Favorite โดยส่งคำขอเพิ่มหรือลบไปยัง API
 async function toggleFavorite(
     plant,
     button
@@ -725,10 +756,7 @@ async function toggleFavorite(
 }
 
 
-/*
-    ไปหน้ารายละเอียด
-*/
-
+// # บันทึกต้นไม้ที่เลือกและนำทางไปหน้ารายละเอียด
 function viewDetail(slug) {
     try {
         const savedState = JSON.parse(

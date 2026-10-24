@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- # หน้าแสดงและจัดการต้นไม้ที่บันทึกไว้เป็นรายการโปรด -->
 <html lang="en">
 
 <head>
@@ -23,6 +24,12 @@
 
 
 <body>
+
+    <!-- # ปุ่มย้อนกลับประจำหน้ารอง กลับหน้าก่อนหน้าหรือหน้าแรก -->
+    <a href="index.html" class="back-button corner-back-button" data-back-button aria-label="ย้อนกลับ">
+        <span aria-hidden="true">←</span>
+        Back
+    </a>
 
     <!-- Header -->
 
@@ -51,12 +58,10 @@
             </div>
 
 
-            <a
-                href="index.html"
-                class="favorites-link"
-            >
-                🌱 Explore Plants
-            </a>
+            <div class="nav-actions">
+                <a href="history.html" class="favorites-link">🕘 Viewing history</a>
+                <a href="index.html" class="favorites-link">🌱 Explore Plants</a>
+            </div>
 
         </div>
 
@@ -65,6 +70,7 @@
 
     <!-- Main -->
 
+    <!-- # พื้นที่แสดงรายการ Favorite ที่สร้างโดย favorites.js -->
     <main class="container">
 
         <section class="result-section">
@@ -130,6 +136,8 @@
     </footer>
 
 
+    <!-- # เปิดใช้งานปุ่มย้อนกลับและโหลดตรรกะของรายการ Favorite -->
+    <script src="backNavigation.js"></script>
     <script src="favorites.js"></script>
 
 </body>
