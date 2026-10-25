@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<!-- # หน้าแสดงรายการต้นไม้ที่ผู้ใช้เคยเปิดดู -->
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ประวัติการดู | Trefle Plant Shop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- # ปุ่มย้อนกลับประจำหน้ารอง กลับหน้าก่อนหน้าหรือหน้าแรก -->
+    <a href="index.html" class="back-button corner-back-button" data-back-button aria-label="ย้อนกลับ">
+        <span aria-hidden="true">←</span>
+        Back
+    </a>
+
+    <!-- # ส่วนหัวเว็บไซต์พร้อมลิงก์นำทางหน้าประวัติและรายการโปรด -->
+    <header class="header">
+        <div class="nav">
+            <!-- # แสดงชื่อร้านและคำอธิบายหน้า -->
+            <div class="brand">
+                <div class="brand-icon">🌿</div>
+                <div>
+                    <h1>Trefle Plant Shop</h1>
+                    <span>ต้นไม้ที่คุณเคยเปิดดู</span>
+                </div>
+            </div>
+            <!-- # ลิงก์นำทางไปหน้าประวัติการดูและหน้า Favorites -->
+            <div class="nav-actions">
+                <a href="history.html" class="favorites-link" aria-current="page">🕘 Viewing history</a>
+                <a href="favorites.html" class="favorites-link">❤️ Favorites</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- # พื้นที่รายการประวัติและปุ่มล้างประวัติ -->
+    <main class="container">
+        <section class="result-section">
+            <div class="section-heading">
+                <div>
+                    <span class="small-title">RECENTLY VIEWED</span>
+                    <h2>ประวัติการดู</h2>
+                </div>
+                <!-- # ปุ่มนี้ใช้ล้างรายการประวัติการดูทั้งหมด -->
+                <button id="clearViewHistoryButton" class="primary-button" type="button">
+                    ล้างประวัติ
+                </button>
+            </div>
+
+            <!-- # history.js สร้างการ์ดต้นไม้ที่เคยเปิดดูใส่ในพื้นที่นี้ -->
+            <div id="viewHistoryList" class="plant-grid" aria-live="polite"></div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <strong>🌿 Trefle Plant Shop</strong>
+        <span>ประวัติจะแสดงรายการที่เปิดดูล่าสุดก่อน</span>
+    </footer>
+
+    <!-- # โหลดโครงสร้าง Stack และข้อมูลประวัติก่อน -->
+    <!-- # โหลดตัวจัดเก็บประวัติก่อนสคริปต์ที่นำประวัติไปแสดง -->
+    <script src="viewHistory.js"></script>
+    <!-- # โหลดสคริปต์แสดงรายการและจัดการปุ่มของหน้านี้ -->
+    <script src="backNavigation.js"></script>
+    <script src="history.js"></script>
+</body>
+
+</html>

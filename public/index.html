@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<!-- # หน้าแนะนำต้นไม้หลัก รวมช่องค้นหา ดอกไม้แนะนำ และผลการค้นหา -->
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Trefle Plant Shop</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- # ส่วนหัวเว็บและลิงก์ไปยังประวัติการดูหรือรายการโปรด -->
+    <header class="header">
+
+        <div class="nav">
+
+            <div class="brand">
+
+                <div class="brand-icon">
+                    🌿
+                </div>
+
+                <div>
+                    <h1>Trefle Plant Shop</h1>
+
+                    <span>
+                        Discover your favorite plants
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="nav-actions">
+                <a href="history.html" class="favorites-link">🕘 Viewing history</a>
+                <a href="favorites.html" class="favorites-link">❤️ Favorites</a>
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <main class="container">
+        <!-- # แนะนำเว็บไซต์และให้ผู้ใช้ค้นหาต้นไม้ด้วยชื่อ -->
+        <section class="hero">
+
+            <video
+                class="hero-video"
+                autoplay
+                muted
+                loop
+                playsinline
+                aria-hidden="true"
+            >
+                <source
+                    src="Cows_grazing_on_green_hills_1080p_20261024124512.mp4"
+                    type="video/mp4"
+                >
+            </video>
+
+            <div class="hero-content">
+
+                <span class="eyebrow">
+                    🌱 PLANT EXPLORER
+                </span>
+
+                <h2>
+                    Find a plant<br>
+                    <span>you'll love.</span>
+                </h2>
+
+                <p>
+                    Explore plant information,
+                    discover new species,
+                    and save your favorites.
+                </p>
+
+
+                <div class="search-box">
+
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search plants..."
+                    >
+
+                    <button
+                        id="searchButton"
+                        class="primary-button"
+                        type="button"
+                    >
+                        Search
+                    </button>
+
+                    <button
+                        id="clearSearchButton"
+                        class="clear-search-button"
+                        type="button"
+                        hidden
+                    >
+                        ล้างคำค้นหา
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="hero-decoration">
+
+                <div class="leaf-circle">
+                    🌿
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- # พื้นที่แสดงดอกไม้แนะนำที่โหลดมาจาก API -->
+        <section class="result-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="small-title">
+                        FLOWER PICKS
+                    </span>
+
+                    <h2>
+                        ดอกไม้แนะนำ
+                    </h2>
+
+                </div>
+
+
+            </div>
+
+            <div
+                id="recommendationList"
+                class="plant-grid"
+                aria-live="polite"
+            >
+
+                <div class="loading-state">
+
+                    <div class="loading-icon">
+                        🌸
+                    </div>
+
+                    <h3>
+                        กำลังโหลดดอกไม้แนะนำ
+                    </h3>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- # พื้นที่แสดงผลการค้นหาและปุ่มเปลี่ยนหน้า -->
+        <section class="result-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="small-title">
+                        SEARCH RESULT
+                    </span>
+
+                    <h2>
+                        Explore plants
+                    </h2>
+
+                </div>
+
+                <span class="sort-label">
+                    A–Z
+                </span>
+
+            </div>
+
+
+            <div
+                id="plantList"
+                class="plant-grid"
+            >
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        🌱
+                    </div>
+
+                    <h3>
+                        Start exploring
+                    </h3>
+
+                    <p>
+                        Search for a plant name
+                        to see the results.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="pagination-controls" id="searchPagination" hidden>
+                <button id="previousSearchPage" class="primary-button" type="button">
+                    ← ก่อนหน้า
+                </button>
+                <span id="searchPageLabel" aria-live="polite"></span>
+                <button id="nextSearchPage" class="primary-button" type="button">
+                    ถัดไป →
+                </button>
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer class="footer">
+
+        <strong>
+            🌿 Trefle Plant Shop
+        </strong>
+
+        <span>
+            Plant information powered by Trefle API
+        </span>
+
+    </footer>
+
+    <!-- # โหลดสคริปต์สำหรับค้นหา แสดงผล และจัดการ Favorite -->
+    <script src="script.js"></script>
+
+</body>
+
+</html>

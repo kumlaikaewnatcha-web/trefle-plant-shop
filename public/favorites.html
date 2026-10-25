@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<!-- # หน้าแสดงและจัดการต้นไม้ที่บันทึกไว้เป็นรายการโปรด -->
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Favorites | Trefle Plant Shop
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+    <!-- # ปุ่มย้อนกลับประจำหน้ารอง กลับหน้าก่อนหน้าหรือหน้าแรก -->
+    <a href="index.html" class="back-button corner-back-button" data-back-button aria-label="ย้อนกลับ">
+        <span aria-hidden="true">←</span>
+        Back
+    </a>
+
+    <!-- Header -->
+
+    <header class="header">
+
+        <div class="nav">
+
+            <div class="brand">
+
+                <div class="brand-icon">
+             🌿
+                </div>
+
+                <div>
+
+                    <h1>
+                        Trefle Plant Shop
+                    </h1>
+
+                    <span>
+                        Your favorite plants
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="nav-actions">
+                <a href="history.html" class="favorites-link">🕘 Viewing history </a>
+                <a href="index.html" class="favorites-link">🌱 Explore Plants</a>
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- Main -->
+
+    <!-- # พื้นที่แสดงรายการ Favorite ที่สร้างโดย favorites.js -->
+    <main class="container">
+
+        <section class="result-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="small-title">
+                        SAVED PLANTS
+                    </span>
+
+                    <h2>
+                        ❤️ My Favorites
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="favoriteList"
+                class="plant-grid"
+            >
+
+                <!-- JavaScript จะนำข้อมูลมาแสดงตรงนี้ -->
+
+                <div class="loading-state">
+
+                    <div class="loading-icon">
+                        🌿
+                    </div>
+
+                    <h3>
+                        Loading favorites...
+                    </h3>
+
+                    <p>
+                        Please wait a moment.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+
+    <footer class="footer">
+
+        <strong>
+            🌿 Trefle Plant Shop
+        </strong>
+
+        <span>
+            Plant information powered by Trefle API
+        </span>
+
+    </footer>
+
+    <!-- # เปิดใช้งานปุ่มย้อนกลับและโหลดตรรกะของรายการ Favorite -->
+    <script src="backNavigation.js"></script>
+    <script src="favorites.js"></script>
+
+</body>
+
+</html>

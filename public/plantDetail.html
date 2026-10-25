@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<!-- # หน้าแสดงรายละเอียดและข้อมูลการดูแลต้นไม้หนึ่งรายการ -->
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Plant Detail | Trefle Plant Shop
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+    <!-- # ปุ่มย้อนกลับประจำหน้ารอง กลับหน้าก่อนหน้าหรือหน้าแรก -->
+    <a href="index.html" class="back-button corner-back-button" data-back-button aria-label="Back">
+        <span aria-hidden="true">←</span>
+        Back
+    </a>
+
+    <!-- # ส่วนหัวเว็บไซต์พร้อมลิงก์ไปยังประวัติและรายการโปรด -->
+    <header class="header">
+
+        <div class="nav">
+
+            <div class="brand">
+
+                <div class="brand-icon">
+                    🌿
+                </div>
+
+                <div>
+
+                    <h1>
+                        Trefle Plant Shop
+                    </h1>
+
+                    <span>
+                        Plant information
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="nav-actions">
+                <a href="history.html" class="favorites-link">🕘 ประวัติการดู</a>
+                <a href="favorites.html" class="favorites-link">❤️ Favorites</a>
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- # detail.js แทนที่สถานะกำลังโหลดด้วยข้อมูลต้นไม้ -->
+    <main class="container">
+
+        <div
+            id="plantDetail"
+            class="detail-card"
+        >
+
+            <div class="loading-state">
+
+                <div class="loading-icon">
+                    🌿
+                </div>
+
+                <h3>
+                    Loading...
+                </h3>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <footer class="footer">
+
+        <strong>
+            🌿 Trefle Plant Shop
+        </strong>
+
+    </footer>
+
+    <!-- # โหลดตัวบันทึกประวัติ ปุ่มย้อนกลับ และรายละเอียดต้นไม้ตามลำดับ -->
+    <script src="viewHistory.js"></script>
+    <script src="backNavigation.js"></script>
+    <script src="detail.js"></script>
+
+</body>
+
+</html>

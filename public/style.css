@@ -1,0 +1,1286 @@
+/* # รูปแบบร่วมของหน้าเว็บ ตั้งแต่ส่วนหัว การ์ด ไปจนถึงจอขนาดเล็ก */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+body {
+    font-family:
+        Arial,
+        "Noto Sans Thai",
+        sans-serif;
+
+    background:
+        #f5f8f1;
+
+    color:
+        #26382b;
+
+    min-height:
+        100vh;
+}
+
+
+/* # ส่วนหัว แบรนด์ และลิงก์นำทาง */
+
+.header {
+    background:
+        rgba(255, 255, 255, 0.92);
+
+    border-bottom:
+        1px solid #e2eadc;
+
+    position:
+        sticky;
+
+    top:
+        0;
+
+    z-index:
+        10;
+
+    backdrop-filter:
+        blur(10px);
+}
+
+
+.nav {
+    max-width:
+        1180px;
+
+    margin:
+        auto;
+
+    padding:
+        18px 24px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+
+.brand {
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        12px;
+}
+
+
+.brand-icon {
+    width:
+        48px;
+
+    height:
+        48px;
+
+    border-radius:
+        16px;
+
+    background:
+        #dcefd4;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    font-size:
+        25px;
+}
+
+
+.brand h1 {
+    font-size:
+        20px;
+
+    margin-bottom:
+        3px;
+}
+
+
+.brand span {
+    font-size:
+        13px;
+
+    color:
+        #78907b;
+}
+
+
+.favorites-link {
+    text-decoration:
+        none;
+
+    color:
+        #486a4d;
+
+    background:
+        #edf6e9;
+
+    padding:
+        11px 18px;
+
+    border-radius:
+        999px;
+
+    font-weight:
+        600;
+
+    transition:
+        0.2s;
+}
+
+
+.favorites-link:hover {
+    background:
+        #dcefd4;
+}
+
+.favorites-link[aria-current="page"] {
+    background: #dcefd4;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.pagination-controls[hidden] {
+    display: none;
+}
+
+.pagination-controls .primary-button {
+    min-height: 42px;
+}
+
+.pagination-controls .primary-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.pagination-controls span {
+    color: #536b55;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+
+/* # กำหนดความกว้างและระยะห่างของเนื้อหาหลัก */
+
+.container {
+    max-width:
+        1180px;
+
+    margin:
+        auto;
+
+    padding:
+        36px 24px 70px;
+}
+
+
+/* # พื้นที่แนะนำเว็บไซต์พร้อมวิดีโอพื้นหลังและข้อความ */
+
+.hero {
+    min-height:
+        370px;
+
+    border-radius:
+        32px;
+
+    background:
+        #26382b;
+
+    padding:
+        55px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    overflow:
+        hidden;
+
+    position:
+        relative;
+}
+
+.hero-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.hero::before {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+        linear-gradient(90deg, rgba(19, 39, 26, 0.88) 0%, rgba(26, 48, 32, 0.72) 48%, rgba(31, 53, 36, 0.28) 100%),
+        linear-gradient(0deg, rgba(20, 38, 26, 0.2), rgba(20, 38, 26, 0.08));
+    content: "";
+}
+
+
+.hero-content {
+    max-width:
+        650px;
+
+    position:
+        relative;
+
+    z-index:
+        2;
+}
+
+
+.eyebrow {
+    display:
+        inline-block;
+
+    padding:
+        8px 13px;
+
+    border-radius:
+        999px;
+
+    background:
+        rgba(255,255,255,0.16);
+
+    color:
+        #e1f1d9;
+
+    font-size:
+        12px;
+
+    font-weight:
+        bold;
+
+    letter-spacing:
+        1px;
+
+    margin-bottom:
+        18px;
+}
+
+
+.hero h2 {
+    font-size:
+        clamp(38px, 6vw, 66px);
+
+    line-height:
+        1.05;
+
+    color:
+        #fff;
+
+    margin-bottom:
+        20px;
+
+    text-shadow:
+        0 2px 18px rgba(0, 0, 0, 0.2);
+}
+
+
+.hero h2 span {
+    color:
+        #c8e7b6;
+}
+
+
+.hero p {
+    color:
+        rgba(255, 255, 255, 0.84);
+
+    line-height:
+        1.7;
+
+    max-width:
+        540px;
+
+    margin-bottom:
+        25px;
+}
+
+
+.hero-decoration {
+    width:
+        260px;
+
+    height:
+        260px;
+
+    border-radius:
+        50%;
+
+    background:
+        rgba(255,255,255,0.12);
+
+    border:
+        1px solid rgba(255,255,255,0.22);
+
+    position:
+        relative;
+
+    z-index:
+        2;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+}
+
+
+.leaf-circle {
+    width:
+        180px;
+
+    height:
+        180px;
+
+    border-radius:
+        50%;
+
+    background:
+        #d1e8c9;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    font-size:
+        80px;
+
+    transform:
+        rotate(-8deg);
+}
+
+
+/* # ช่องค้นหา ปุ่มค้นหา และปุ่มล้างคำค้นหา */
+
+.search-box {
+    display:
+        flex;
+
+    gap:
+        10px;
+
+    max-width:
+        600px;
+}
+
+
+.search-box input {
+    flex:
+        1;
+
+    border:
+        none;
+
+    outline:
+        none;
+
+    padding:
+        16px 20px;
+
+    border-radius:
+        999px;
+
+    background:
+        white;
+
+    font-size:
+        15px;
+
+    box-shadow:
+        0 8px 25px rgba(66, 91, 66, 0.08);
+}
+
+
+.primary-button {
+    border:
+        none;
+
+    border-radius:
+        999px;
+
+    padding:
+        0 25px;
+
+    background:
+        #6f9b68;
+
+    color:
+        white;
+
+    font-weight:
+        bold;
+
+    cursor:
+        pointer;
+
+    transition:
+        0.2s;
+}
+
+
+.primary-button:hover {
+    background:
+        #5e895b;
+
+    transform:
+        translateY(-2px);
+}
+
+.primary-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.clear-search-button {
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 999px;
+    padding: 0 18px;
+    background: rgba(255, 255, 255, 0.14);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.clear-search-button:hover {
+    background: rgba(255, 255, 255, 0.26);
+    transform: translateY(-2px);
+}
+
+.history-viewed-at {
+    margin: 0 5px 18px;
+    color: #718174;
+    font-size: 13px;
+}
+
+/* # หัวข้อและป้ายกำกับของส่วนผลลัพธ์ */
+
+.result-section {
+    margin-top:
+        45px;
+}
+
+
+.section-heading {
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        end;
+
+    margin-bottom:
+        20px;
+}
+
+
+.small-title {
+    color:
+        #7b987b;
+
+    font-size:
+        11px;
+
+    font-weight:
+        bold;
+
+    letter-spacing:
+        1.5px;
+}
+
+
+.section-heading h2 {
+    font-size:
+        28px;
+
+    margin-top:
+        5px;
+}
+
+
+.sort-label {
+    background:
+        #e5f0df;
+
+    color:
+        #648064;
+
+    padding:
+        8px 14px;
+
+    border-radius:
+        999px;
+
+    font-size:
+        13px;
+
+    font-weight:
+        bold;
+}
+
+
+/* # ตารางการ์ดต้นไม้ รูปภาพ ชื่อ และปุ่มจัดการ */
+
+.plant-grid {
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap:
+        22px;
+}
+
+
+.plant-card {
+    background:
+        white;
+
+    border:
+        1px solid #e5ece0;
+
+    border-radius:
+        24px;
+
+    padding:
+        14px;
+
+    box-shadow:
+        0 8px 28px rgba(55, 76, 55, 0.07);
+
+    transition:
+        0.25s;
+
+    overflow:
+        hidden;
+}
+
+
+.plant-card:hover {
+    transform:
+        translateY(-5px);
+
+    box-shadow:
+        0 14px 35px rgba(55, 76, 55, 0.12);
+}
+
+.plant-card.is-selected {
+    border: 2px solid #6f9b68;
+    box-shadow: 0 0 0 3px rgba(111, 155, 104, 0.16);
+}
+
+.selected-plant-marker {
+    display: inline-flex;
+    margin: 0 5px 10px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #e5f2dc;
+    color: #486a4d;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+.plant-image {
+    width:
+        100%;
+
+    height:
+        220px;
+
+    object-fit:
+        cover;
+
+    border-radius:
+        18px;
+
+    display:
+        block;
+
+    background:
+        #edf3e9;
+
+    margin-bottom:
+        18px;
+}
+
+.plant-image-fallback {
+    width: 100%;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    background: #edf3e9;
+    font-size: 42px;
+    margin-bottom: 18px;
+}
+
+.plant-image-fallback[hidden] {
+    display: none;
+}
+
+
+.plant-card h3 {
+    font-size:
+        20px;
+
+    margin:
+        0 5px 7px;
+}
+
+.scientific-name {
+    color:
+        #819083;
+
+    font-size:
+        14px;
+
+    font-style:
+        italic;
+
+    margin:
+        0 5px 18px;
+}
+
+
+.card-buttons {
+    display:
+        flex;
+
+    gap:
+        8px;
+}
+
+
+.secondary-button,
+.favorite-button {
+    border:
+        none;
+
+    border-radius:
+        999px;
+
+    padding:
+        11px 13px;
+
+    font-weight:
+        600;
+
+    cursor:
+        pointer;
+
+    transition:
+        0.2s;
+
+    flex:
+        1;
+}
+
+
+.secondary-button {
+    background:
+        #edf3e9;
+
+    color:
+        #557057;
+}
+
+
+.secondary-button:hover {
+    background:
+        #dfeada;
+}
+
+
+.favorite-button {
+    background:
+        #fff0f1;
+
+    color:
+        #a2676c;
+}
+
+
+.favorite-button:hover {
+    transform:
+        scale(1.03);
+}
+
+
+.favorite-button.is-favorite {
+    background:
+        #e8f3df;
+
+    color:
+        #4f7c51;
+}
+
+
+.favorite-button:disabled {
+    opacity:
+        0.6;
+
+    cursor:
+        wait;
+}
+
+
+/* # การ์ดข้อมูลการดูแลต้นไม้และเอฟเฟกต์ประกอบ */
+.plant-care {
+    margin-top: 40px;
+    border-top: 2px dashed #e2eadc;
+    padding-top: 30px;
+}
+
+.plant-care > h3 {
+    margin-bottom: 24px;
+    font-size: 26px;
+    color: #26382b;
+}
+
+.care-grid {
+    columns: 2;
+    column-gap: 20px;
+}
+
+/* --- การ์ดแต่ละใบ --- */
+.care-section {
+    display: inline-block;
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 20px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 20px; /* ขอบมนขึ้น */
+    background: linear-gradient(145deg, #ffffff, #f7f9f5); /* ไล่สีพื้นหลังการ์ด */
+    box-shadow: 0 8px 24px rgba(66, 91, 66, 0.06); /* เงาฟุ้งๆ ดูนุ่มนวล */
+    transition: all 0.3s ease; /* เตรียมทำอนิเมชัน */
+    break-inside: avoid;
+}
+
+/* เอฟเฟกต์ตอนเอาเมาส์ชี้การ์ด */
+.care-section:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(66, 91, 66, 0.12);
+}
+
+.care-section h4 {
+    margin-bottom: 18px;
+    color: #486a4d;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+}
+
+/* กล่องใส่ไอคอนให้ดูพรีเมียม */
+.care-icon-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 auto;
+    background: #eaf3e5;
+    border-radius: 12px;
+    font-size: 18px;
+    transition: transform 250ms ease, box-shadow 250ms ease;
+}
+
+.care-section:hover .care-icon-box {
+    animation: care-category-glow 900ms ease;
+    box-shadow: 0 0 8px rgba(139, 195, 74, 0.55);
+    transform: translateY(-2px) scale(1.12);
+}
+
+@keyframes care-category-glow {
+    35% {
+        box-shadow: 0 0 14px rgba(139, 195, 74, 0.65);
+        transform: translateY(-3px) scale(1.18);
+    }
+}
+
+.care-metric + .care-metric {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #f0f4ec;
+}
+
+.care-label {
+    display: block;
+    color: #78907b;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.care-value {
+    margin-top: 6px;
+    line-height: 1.6;
+    font-size: 16px;
+    color: #334a38;
+    font-weight: 500;
+}
+
+.care-note {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 12px;
+    color: #648064;
+    background: #eaf3e5;
+    padding: 6px 12px;
+    border-radius: 8px;
+}
+
+/* จัด Layout สำหรับจอมือถือ */
+@media (max-width: 600px) {
+    .care-grid {
+        columns: 1;
+    }
+}
+
+/* # รูปแบบสถานะว่าง กำลังโหลด ผิดพลาด และส่วนท้าย */
+.empty-state,
+.loading-state,
+.error-state,
+.message-box {
+    grid-column: 1 / -1;
+    padding: 48px 20px;
+    border: 1px solid #e5ece0;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.92);
+    text-align: center;
+}
+
+.empty-icon,
+.loading-icon,
+.error-icon,
+.message-icon {
+    margin-bottom: 15px;
+    font-size: 42px;
+}
+
+.empty-state h3,
+.loading-state h3,
+.error-state h3,
+.message-box h3 {
+    margin-bottom: 8px;
+}
+
+.empty-state p,
+.loading-state p,
+.error-state p,
+.message-box p {
+    color: #718174;
+    line-height: 1.6;
+}
+
+.empty-state .favorites-link {
+    display: flex;
+    width: fit-content;
+    margin: 18px auto 0;
+}
+
+.footer {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 25px;
+    border-top: 1px solid #e2eadc;
+    color: #718174;
+    text-align: center;
+    font-size: 13px;
+}
+
+.back-button {
+    display: inline-block;
+    margin-bottom: 18px;
+    border: 0;
+    background: transparent;
+    color: #486a4d;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.back-button:hover {
+    color: #26382b;
+}
+
+.corner-back-button {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 12px 18px;
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow: 0 5px 18px rgba(38, 56, 43, 0.18);
+}
+
+.corner-back-button:hover {
+    background: #edf6e9;
+}
+
+/* # รูปแบบหน้ารายละเอียด ตราสถานะข้อมูล และคำแนะนำการดูแล */
+.detail-card {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 28px;
+    border: 1px solid #e5ece0;
+    border-radius: 28px;
+    background: #fff;
+    box-shadow: 0 12px 36px rgba(55, 76, 55, 0.08);
+}
+
+.detail-image {
+    display: block;
+    width: 100%;
+    height: 400px;
+    margin-bottom: 25px;
+    border-radius: 22px;
+    background: #edf3e9;
+    object-fit: cover;
+}
+
+.detail-card h2 {
+    margin: 8px 0;
+    font-size: clamp(28px, 5vw, 38px);
+}
+
+.detail-card .favorite-button {
+    max-width: 220px;
+}
+
+.plant-card,
+.detail-card,
+.care-section {
+    min-width: 0;
+}
+
+.care-value,
+.care-tip-box p {
+    overflow-wrap: anywhere;
+}
+
+.metric-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.metric-header .care-label {
+    display: inline;
+}
+
+.score-text {
+    flex: 0 0 auto;
+    color: #486a4d;
+    font-size: 13px;
+}
+
+.status-text {
+    margin-top: 8px;
+    color: #334a38;
+    font-weight: 600;
+}
+
+.care-icon-scale {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 10px;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    text-align: inherit;
+}
+
+.care-icon-list {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    align-items: center;
+    justify-items: center;
+    min-width: 0;
+}
+
+.care-scale-icon {
+    font-size: 17px;
+    line-height: 1.2;
+    transition: transform 300ms ease, filter 300ms ease;
+}
+
+.care-scale-endpoint {
+    color: #718174;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.care-scale-icon.is-muted {
+    filter: grayscale(1);
+    opacity: 0.28;
+}
+
+.care-section:hover .care-scale-icon {
+    animation: care-rating-glow 900ms ease both;
+}
+
+@keyframes care-rating-glow {
+    0%,
+    100% {
+        filter: drop-shadow(0 0 0 transparent);
+        transform: translateY(0) scale(1);
+    }
+
+    40% {
+        filter: drop-shadow(0 0 5px rgba(139, 195, 74, 0.9));
+        transform: translateY(-4px) scale(1.2);
+    }
+}
+
+.care-tip-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #f1f6ee;
+    color: #5d735f;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.care-tip-box p {
+    margin: 0;
+}
+
+.tip-icon {
+    flex: 0 0 auto;
+    color: #6f9b68;
+    font-weight: 700;
+}
+
+.theme-yellow .care-icon-box {
+    background: #fff3d6;
+}
+
+.theme-blue .care-icon-box {
+    background: #e2f3f6;
+}
+
+.theme-green .care-icon-box {
+    background: #e5f2dc;
+}
+
+.theme-purple .care-icon-box {
+    background: #f0eafb;
+}
+
+/* # แสดงกรอบโฟกัสให้ผู้ใช้คีย์บอร์ดมองเห็นตำแหน่งปัจจุบัน */
+.primary-button:focus-visible,
+.clear-search-button:focus-visible,
+.secondary-button:focus-visible,
+.favorite-button:focus-visible,
+.favorites-link:focus-visible,
+.back-button:focus-visible,
+.search-box input:focus-visible {
+    outline: 3px solid #8bc34a;
+    outline-offset: 3px;
+}
+
+/* # ปรับตารางและส่วนหัวให้เหมาะกับแท็บเล็ตและมือถือ */
+@media (max-width: 900px) {
+    .plant-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hero-decoration {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 20px 15px 50px;
+    }
+
+    .nav {
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 14px 15px;
+    }
+
+    .brand {
+        flex: 1 1 100%;
+    }
+
+    .brand h1 {
+        font-size: 16px;
+    }
+
+    .favorites-link {
+        padding: 9px 12px;
+        font-size: 13px;
+    }
+
+    .nav-actions {
+        width: 100%;
+        gap: 6px;
+        flex-direction: row;
+        align-items: stretch;
+    }
+
+    .nav-actions .favorites-link {
+        flex: 1;
+        padding: 9px 8px;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .hero {
+        min-height: auto;
+        padding: 30px 22px;
+        border-radius: 25px;
+    }
+
+    .hero h2 {
+        font-size: 40px;
+    }
+
+    .search-box {
+        flex-direction: column;
+    }
+
+    .pagination-controls {
+        gap: 8px;
+    }
+
+    .pagination-controls .primary-button {
+        padding: 0 14px;
+        font-size: 13px;
+    }
+
+    .search-box input,
+    .primary-button,
+    .clear-search-button {
+        min-height: 48px;
+    }
+
+    .primary-button {
+        padding: 0 20px;
+    }
+
+    .plant-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .card-buttons {
+        flex-direction: column;
+    }
+
+    .section-heading {
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .section-heading h2 {
+        font-size: 23px;
+    }
+
+    .sort-label {
+        max-width: 45%;
+        text-align: center;
+    }
+
+    .detail-card {
+        padding: 18px;
+        border-radius: 22px;
+    }
+
+    .detail-image {
+        height: 280px;
+    }
+
+    .care-section {
+        padding: 20px;
+    }
+}
+
+/* # ลดภาพเคลื่อนไหวเมื่อผู้ใช้ตั้งค่าการเข้าถึงให้ลด motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
