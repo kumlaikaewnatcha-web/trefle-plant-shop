@@ -8,6 +8,11 @@ export default function PlantDetail({ plant }) {
     const [favorite, setFavorite] = useState(null);
     const [saving, setSaving] = useState(false);
     const [favoriteError, setFavoriteError] = useState(false);
+    const [imageFailed, setImageFailed] = useState(false);
+
+    useEffect(() => {
+        setImageFailed(false);
+    }, [plant.slug]);
 
     // # ตรวจสอบสถานะรายการโปรดเมื่อเปลี่ยนต้นไม้ที่กำลังแสดง
     useEffect(() => {
@@ -48,8 +53,13 @@ export default function PlantDetail({ plant }) {
     return (
         <>
             {/* # ภาพ ชื่อสามัญ ชื่อวิทยาศาสตร์ และปุ่มรายการโปรด */}
-            {plant.image_url && (
-                <img className="detail-image" src={plant.image_url} alt={plant.common_name || plant.scientific_name} />
+            {plant.image_url && !imageFailed && (
+                <img
+                    className="detail-image"
+                    src={plant.image_url}
+                    alt={plant.common_name || plant.scientific_name}
+                    onError={() => setImageFailed(true)}
+                />
             )}
             <span className="small-title">PLANT INFORMATION</span>
             <h2>{plant.common_name || plant.scientific_name}</h2>

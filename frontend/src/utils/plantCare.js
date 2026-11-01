@@ -5,6 +5,33 @@ function hasValue(value) {
         (typeof value !== "string" || value.trim() !== "");
 }
 
+// # แปลงค่า Trefle ที่อาจเป็น object ให้เป็นข้อความที่อ่านได้
+export function formatCareText(value) {
+    if (!hasValue(value)) return null;
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        return String(value);
+    }
+
+    if (Array.isArray(value)) {
+        return value.map(formatCareText).filter(Boolean).join(", ");
+    }
+
+    if (typeof value === "object") {
+        const preferredKeys = ["description", "text", "value", "en", "name"];
+        const preferredValues = preferredKeys
+            .map(key => formatCareText(value[key]))
+            .filter(Boolean);
+        if (preferredValues.length > 0) return preferredValues.join(" - ");
+
+        return Object.values(value)
+            .map(formatCareText)
+            .filter(Boolean)
+            .join(", ");
+    }
+
+    return null;
+}
+
 // # จัดรูปแบบค่าต่ำสุดและสูงสุดให้อ่านง่าย
 export function formatRange(minimum, maximum) {
     if (!hasValue(minimum) && !hasValue(maximum)) {
@@ -105,8 +132,8 @@ export function getPlantCareSections(plant) {
         {
             title: "คำแนะนำการปลูก",
             metrics: [
-                { label: "การเพาะเมล็ด / ลงปลูก", value: growth.sowing },
-                { label: "คำอธิบาย", value: growth.description }
+                { label: "การเพาะเมล็ด / ลงปลูก", value: formatCareText(growth.sowing) },
+                { label: "คำอธิบาย", value: formatCareText(growth.description) }
             ]
         }
     ].map(section => ({

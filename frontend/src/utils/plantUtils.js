@@ -23,6 +23,7 @@ export function insertionSort(plants) {
 // # ชื่อคีย์ที่ใช้เก็บสถานะค้นหาและประวัติใน sessionStorage
 export const SEARCH_STATE_KEY = "treflePlantSearchState";
 export const VIEW_HISTORY_KEY = "treflePlantViewHistory";
+export const VIEW_HISTORY_LIMIT = 50;
 
 // # อ่านสถานะการค้นหาที่บันทึกไว้
 export function readSearchState() {
@@ -72,16 +73,20 @@ export function recordPlantView(plant) {
     }
 
     const entries = readViewHistory();
-    entries.push({
+    const nextEntry = {
         slug: plant.slug,
         common_name: plant.common_name || "Unknown plant",
         scientific_name: plant.scientific_name || "",
         image_url: plant.image_url || "",
         viewedAt: new Date().toISOString()
-    });
+    };
+    const updatedEntries = [
+        nextEntry,
+        ...entries.filter(entry => entry.slug !== plant.slug)
+    ].slice(0, VIEW_HISTORY_LIMIT);
 
     try {
-        sessionStorage.setItem(VIEW_HISTORY_KEY, JSON.stringify(entries));
+        sessionStorage.setItem(VIEW_HISTORY_KEY, JSON.stringify(updatedEntries));
     } catch (error) {
         console.error("Unable to save plant view history:", error);
     }
