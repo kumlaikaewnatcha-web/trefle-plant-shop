@@ -4,6 +4,7 @@ const TREFLE_BASE_URL = "https://trefle.io/api/v1";
 const RECOMMENDED_FLOWER_SEARCHES = ["rose", "tulip", "orchid", "daisy", "sunflower"];
 // # เก็บผลแนะนำไว้ 30 นาทีเพื่อลดการเรียก API ซ้ำ
 const RECOMMENDATION_CACHE_TTL = 30 * 60 * 1000;
+const TREFLE_REQUEST_TIMEOUT = 10 * 1000;
 let recommendationCache = {
     expiresAt: 0,
     plants: null
@@ -27,7 +28,13 @@ async function requestTrefle(path, params = {}) {
 
     let response;
     try {
-        response = await fetch(url);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), TREFLE_REQUEST_TIMEOUT);
+        try {
+            response = await fetch(url, { signal: controller.signal });
+        } finally {
+            clearTimeout(timeout);
+        }
     } catch (cause) {
         const error = new Error("Unable to reach Trefle API", { cause });
         error.statusCode = 502;
@@ -90,15 +97,23 @@ async function getFlowerRecommendations() {
         });
     });
 
+    const details = await Promise.allSettled(
+        candidates.slice(0, 12).map(plant => getPlantDetail(plant.slug))
+    );
     const plants = [];
 
-    for (let index = 0; index < candidates.length; index += 4) {
-        const batch = candidates.slice(index, index + 4);
-        const details = await Promise.allSettled(
-            batch.map(plant => getPlantDetail(plant.slug))
+    details.forEach(result => {
+        if (result.status === "fulfilled" && result.value.data?.common_name) {
+            plants.push(result.value.data);
+        }
+    });
+
+    if (plants.length < 12 && candidates.length > 12) {
+        const remainingDetails = await Promise.allSettled(
+            candidates.slice(12, 24).map(plant => getPlantDetail(plant.slug))
         );
 
-        details.forEach(result => {
+        remainingDetails.forEach(result => {
             if (result.status === "fulfilled" && result.value.data?.common_name) {
                 plants.push(result.value.data);
             }

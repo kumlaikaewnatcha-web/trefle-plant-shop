@@ -21,6 +21,7 @@ router.get("/search", async (req, res) => {
 
 // # ส่งรายการดอกไม้แนะนำที่บริการรวบรวมและจัดอันดับไว้
 router.get("/recommendations", async (req, res) => {
+    res.set("Cache-Control", "public, s-maxage=1800, stale-while-revalidate=3600");
     res.json({ data: await getFlowerRecommendations() });
 });
 
