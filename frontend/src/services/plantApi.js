@@ -74,34 +74,14 @@ export function getPlant(slug) {
 // # ขอรายการโปรดทั้งหมด
 export function getFavorites() {
     const storedFavorites = readStoredFavorites();
-    const removedSlugs = readRemovedFavoriteSlugs();
-
-    return requestJson("/api/favorites")
-        .then(result => {
-            const serverFavorites = Array.isArray(result.data) ? result.data : [];
-            const favoritesBySlug = new Map(
-                [
-                    ...storedFavorites.filter(plant => !removedSlugs.has(plant.slug)),
-                    ...serverFavorites.filter(plant => !removedSlugs.has(plant.slug))
-                ].map(plant => [plant.slug, plant])
-            );
-            const favorites = Array.from(favoritesBySlug.values());
-            saveStoredFavorites(favorites);
-            return { data: favorites };
-        })
-        .catch(() => ({ data: storedFavorites }));
+    return Promise.resolve({ data: storedFavorites });
 }
 
 // # ตรวจสอบว่าต้นไม้ตาม slug เป็นรายการโปรดหรือไม่
 export function checkFavorite(slug) {
-    return requestJson(`/api/favorites/${encodeURIComponent(slug)}`)
-        .then(result => ({
-            favorite: result.favorite === true ||
-                readStoredFavorites().some(plant => plant.slug === slug)
-        }))
-        .catch(() => ({
-            favorite: readStoredFavorites().some(plant => plant.slug === slug)
-        }));
+    return Promise.resolve({
+        favorite: readStoredFavorites().some(plant => plant.slug === slug)
+    });
 }
 
 // # เพิ่มต้นไม้ลงในรายการโปรด
@@ -114,11 +94,7 @@ export function addFavorite(plant) {
     removedSlugs.delete(plant.slug);
     saveRemovedFavoriteSlugs(removedSlugs);
 
-    return requestJson("/api/favorites", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(plant)
-    }).catch(() => null);
+    return Promise.resolve({ data: plant });
 }
 
 // # ลบต้นไม้ออกจากรายการโปรด
@@ -128,7 +104,5 @@ export function removeFavorite(slug) {
     removedSlugs.add(slug);
     saveRemovedFavoriteSlugs(removedSlugs);
 
-    return requestJson(`/api/favorites/${encodeURIComponent(slug)}`, {
-        method: "DELETE"
-    }).catch(() => null);
+    return Promise.resolve({ data: null });
 }
