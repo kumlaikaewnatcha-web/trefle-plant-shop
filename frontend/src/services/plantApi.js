@@ -27,35 +27,6 @@ async function requestJson(url, options) {
     }
 }
 
-const FAVORITES_STORAGE_KEY = "trefle-favorite-plants";
-const REMOVED_FAVORITES_STORAGE_KEY = "trefle-removed-favorite-slugs";
-
-function readStoredFavorites() {
-    try {
-        const favorites = JSON.parse(localStorage.getItem(FAVORITES_STORAGE_KEY) || "[]");
-        return Array.isArray(favorites) ? favorites.filter(plant => plant && typeof plant.slug === "string") : [];
-    } catch {
-        return [];
-    }
-}
-
-function saveStoredFavorites(favorites) {
-    localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favorites));
-}
-
-function readRemovedFavoriteSlugs() {
-    try {
-        const slugs = JSON.parse(localStorage.getItem(REMOVED_FAVORITES_STORAGE_KEY) || "[]");
-        return new Set(Array.isArray(slugs) ? slugs.filter(slug => typeof slug === "string") : []);
-    } catch {
-        return new Set();
-    }
-}
-
-function saveRemovedFavoriteSlugs(slugs) {
-    localStorage.setItem(REMOVED_FAVORITES_STORAGE_KEY, JSON.stringify(Array.from(slugs)));
-}
-
 // # ค้นหาต้นไม้ด้วยคำค้น
 export function searchPlants(query) {
     return requestJson(`/api/plants/search?q=${encodeURIComponent(query)}`);
@@ -73,36 +44,26 @@ export function getPlant(slug) {
 
 // # ขอรายการโปรดทั้งหมด
 export function getFavorites() {
-    const storedFavorites = readStoredFavorites();
-    return Promise.resolve({ data: storedFavorites });
+    return requestJson("/api/favorites");
 }
 
 // # ตรวจสอบว่าต้นไม้ตาม slug เป็นรายการโปรดหรือไม่
 export function checkFavorite(slug) {
-    return Promise.resolve({
-        favorite: readStoredFavorites().some(plant => plant.slug === slug)
-    });
+    return requestJson(`/api/favorites/${encodeURIComponent(slug)}`);
 }
 
 // # เพิ่มต้นไม้ลงในรายการโปรด
 export function addFavorite(plant) {
-    const favorites = readStoredFavorites();
-    if (!favorites.some(savedPlant => savedPlant.slug === plant.slug)) {
-        saveStoredFavorites([...favorites, plant]);
-    }
-    const removedSlugs = readRemovedFavoriteSlugs();
-    removedSlugs.delete(plant.slug);
-    saveRemovedFavoriteSlugs(removedSlugs);
-
-    return Promise.resolve({ data: plant });
+    return requestJson("/api/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(plant)
+    });
 }
 
 // # ลบต้นไม้ออกจากรายการโปรด
 export function removeFavorite(slug) {
-    saveStoredFavorites(readStoredFavorites().filter(plant => plant.slug !== slug));
-    const removedSlugs = readRemovedFavoriteSlugs();
-    removedSlugs.add(slug);
-    saveRemovedFavoriteSlugs(removedSlugs);
-
-    return Promise.resolve({ data: null });
+    return requestJson(`/api/favorites/${encodeURIComponent(slug)}`, {
+        method: "DELETE"
+    });
 }
