@@ -148,6 +148,7 @@ Content-Type: application/json
 │   └── index.js                    # adapter สำหรับส่งออก Express app
 ├── backend/
 │   ├── index.js                    # สร้าง Express app และ Error Middleware
+│   ├── server.js                   # ส่งออกแอปหลัก
 │   ├── routes/
 │   │   ├── plantRoutes.js          # endpoints เกี่ยวกับต้นไม้
 │   │   └── favoriteRoutes.js       # endpoints เกี่ยวกับรายการโปรด
@@ -260,7 +261,7 @@ flowchart TD
 | `home` | `/` | home, history, favorites, detail |
 | `favorites` | `/favorites.html` | home, history, favorites, detail |
 | `history` | `/history.html` | home, favorites, history, detail |
-| `detail` | `/plantDetail.html?slug=<slug>` | home, history, favorites, detail |
+| `detail` | `/plantDetail.html` | home, history, favorites, detail |
 
 แผนภาพการเชื่อมโยงหน้า (แสดง edge ระหว่างคนละหน้าเพื่อให้อ่านง่าย โดยในข้อมูล Graph มี self-edge ของแต่ละ node ด้วย):
 
@@ -447,5 +448,3 @@ HomePage (ถือ state และจัดการการค้นหา)
 | Empty | ยังไม่ค้นหา, ไม่พบต้นไม้, ไม่มีรายการโปรด หรือไม่มีประวัติ | แสดง `EmptyState` พร้อมข้อความแนะนำ |
 | Error | คำขอค้นหา/คำแนะนำ/รายการโปรด/รายละเอียดล้มเหลว | แสดง `ErrorState` หรือข้อความ error ใน component |
 | Success / มีข้อมูล | API ส่งข้อมูลกลับสำเร็จ | แสดงการ์ดต้นไม้ รายละเอียด หรือรายการที่บันทึกไว้ |
-
-**ข้อควรปรับปรุงก่อนส่ง:** ปัจจุบัน `addFavorite()` และ `removeFavorite()` ใน `frontend/src/services/plantApi.js` ดัก error จาก Express ด้วย `.catch(() => null)` ทำให้ component อาจเข้าใจว่าการทำงานเสร็จแล้ว แม้ Backend จะไม่สำเร็จ ควรแก้ให้ส่ง error กลับไปยัง component และแสดงข้อความสำเร็จ/ล้มเหลวตามผลจริงก่อนสาธิตหัวข้อ API error handling
