@@ -1,5 +1,3 @@
-// # Directed graph of pages registered in React Router
-// # Each edge represents a navigation link between pages.
 export const pageGraph = {
     home: ["home", "history", "favorites", "detail"],
     favorites: ["home", "history", "favorites", "detail"],
@@ -7,7 +5,6 @@ export const pageGraph = {
     detail: ["home", "history", "favorites", "detail"],
 };
 
-// # Map page nodes to their React Router paths.
 export const pagePaths = {
     home: "/",
     favorites: "/favorites.html",
@@ -15,7 +12,6 @@ export const pagePaths = {
     detail: "/plantDetail.html",
 };
 
-// # Nodes with a menuLabel are shown in the header when reachable from the current page.
 export const pageLabels = {
     home: { title: "Home" },
     favorites: { title: "Favorites", menuLabel: "❤️ Favorites" },
@@ -23,7 +19,6 @@ export const pageLabels = {
     detail: { title: "Plant Detail" },
 };
 
-// # Use breadth-first search to determine whether a destination is reachable.
 export function canReach(start, end, graph = pageGraph) {
     const queue = [start];
     const visited = new Set([start]);
@@ -43,7 +38,6 @@ export function canReach(start, end, graph = pageGraph) {
     return false;
 }
 
-// # Find pages unreachable from home or unable to navigate back home.
 export function checkGraph() {
     const pages = Object.keys(pageGraph);
     return {

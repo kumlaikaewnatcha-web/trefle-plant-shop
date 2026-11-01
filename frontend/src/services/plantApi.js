@@ -1,12 +1,30 @@
 // # ส่งคำขอไปยัง backend และแปลงผลตอบกลับ JSON พร้อมแจ้งข้อผิดพลาด HTTP
 async function requestJson(url, options) {
-    const response = await fetch(url, options);
-
-    if (!response.ok) {
-        throw new Error(`Request failed (${response.status})`);
+    let response;
+    try {
+        response = await fetch(url, options);
+    } catch (cause) {
+        throw new Error("Unable to connect to the Express API", { cause });
     }
 
-    return response.status === 204 ? null : response.json();
+    if (!response.ok) {
+        let message = `Request failed (${response.status})`;
+        try {
+            const body = await response.clone().json();
+            if (typeof body.error === "string") message = body.error;
+        } catch {
+            // Keep the HTTP status message when the backend does not return JSON.
+        }
+        throw new Error(message);
+    }
+
+    if (response.status === 204) return null;
+
+    try {
+        return await response.json();
+    } catch (cause) {
+        throw new Error("The Express API returned invalid JSON", { cause });
+    }
 }
 
 const FAVORITES_STORAGE_KEY = "trefle-favorite-plants";
@@ -76,9 +94,14 @@ export function getFavorites() {
 
 // # ตรวจสอบว่าต้นไม้ตาม slug เป็นรายการโปรดหรือไม่
 export function checkFavorite(slug) {
-    return Promise.resolve({
-        favorite: readStoredFavorites().some(plant => plant.slug === slug)
-    });
+    return requestJson(`/api/favorites/${encodeURIComponent(slug)}`)
+        .then(result => ({
+            favorite: result.favorite === true ||
+                readStoredFavorites().some(plant => plant.slug === slug)
+        }))
+        .catch(() => ({
+            favorite: readStoredFavorites().some(plant => plant.slug === slug)
+        }));
 }
 
 // # เพิ่มต้นไม้ลงในรายการโปรด

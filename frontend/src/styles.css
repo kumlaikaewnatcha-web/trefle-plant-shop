@@ -426,6 +426,9 @@ body {
 
 
 .search-box input {
+    -webkit-appearance: none;
+    appearance: none;
+
     flex:
         1;
 
@@ -449,6 +452,13 @@ body {
 
     box-shadow:
         0 8px 25px rgba(66, 91, 66, 0.08);
+}
+
+.search-box input::-webkit-search-decoration,
+.search-box input::-webkit-search-cancel-button,
+.search-box input::-webkit-search-results-button,
+.search-box input::-webkit-search-results-decoration {
+    display: none;
 }
 
 

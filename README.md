@@ -1,216 +1,451 @@
-# Trefle Plant Shop
-
-เว็บค้นหาและศึกษาข้อมูลต้นไม้ที่ใช้ **React + Vite** เป็น Frontend, **Express** เป็น Backend และ **Trefle API** เป็นแหล่งข้อมูล ช่วยให้ผู้ใช้ค้นหาต้นไม้ ดูข้อมูลและแนวทางการดูแล บันทึกรายการโปรด และย้อนดูประวัติการเปิดรายละเอียดต้นไม้ได้
-
 ## 1. ฟีเจอร์หลัก
 
-- ค้นหาต้นไม้จากชื่อ
+- ค้นหาต้นไม้จากชื่อผ่าน Trefle API
 - แสดงดอกไม้แนะนำ โดยจัดอันดับจากความครบถ้วนของข้อมูลการดูแล
-- ดูรายละเอียดต้นไม้และข้อมูลการดูแล
-- เรียงผลการค้นหาตามชื่อสามัญ A–Z ด้วย Insertion Sort
+- ดูรายละเอียดต้นไม้และข้อมูลการดูแล เช่น แสง น้ำ ดิน และอุณหภูมิ ตามข้อมูลที่ API ส่งกลับมา
+- เรียงผลการค้นหาตามชื่อสามัญ A–Z ด้วยอัลกอริทึม Insertion Sort
 - เพิ่มและลบต้นไม้จากรายการโปรด
-- ดูและล้างประวัติการเปิดดูต้นไม้
-- แสดงสถานะ Loading, Empty, Error และผลลัพธ์สำเร็จในหน้าที่เกี่ยวข้อง
+- ดูรายการโปรดที่บันทึกไว้
+- ดูและล้างประวัติการเปิดรายละเอียดต้นไม้
+- จดจำคำค้นและผลการค้นหาภายใน session ของแท็บเบราว์เซอร์
+- แสดงสถานะ Loading, Empty และ Error ในส่วนที่เกี่ยวข้อง
 
 ## 2. เทคโนโลยีและสถาปัตยกรรม
 
-- **Frontend:** React, Vite, React Router, HTML, CSS, JavaScript
-- **Backend:** Node.js, Express
-- **External API:** Trefle API
-- **Data storage:** รายการโปรดเก็บในหน่วยความจำของ Express; สถานะค้นหาและประวัติการดูเก็บใน `sessionStorage` ของเบราว์เซอร์
+| ส่วน | เทคโนโลยี / หน้าที่ |
+|---|---|
+| Frontend | React, Vite, React Router, HTML, CSS, JavaScript |
+| Backend | Node.js และ Express |
+| External API | Trefle API |
+| Client storage | `localStorage` สำหรับรายการโปรด และ `sessionStorage` สำหรับสถานะการค้นหา/ประวัติการดู |
+| DSA | Insertion Sort, Hash Table (`Map`) และ Graph แบบ adjacency list |
 
-ภาพรวมการทำงาน: React เรียก Express ผ่าน endpoint `/api/...` แล้ว Express ติดต่อ Trefle API เพื่อซ่อน API token จากฝั่ง Frontend และจัดการการตอบกลับ/ข้อผิดพลาดก่อนส่งข้อมูลกลับ
+### ภาพรวมการทำงาน
 
-## 3. การติดตั้งและรันโปรเจกต์
+```mermaid
+flowchart LR
+    U[ผู้ใช้] --> F[React + Vite]
+    F -->|HTTP /api/...| E[Express Backend]
+    E -->|ส่ง token จาก Environment Variable| T[Trefle API]
+    T --> E
+    E -->|JSON response| F
+    F --> U
+```
 
-1. ติดตั้ง Node.js ที่รองรับเวอร์ชันของ dependencies ใน `package.json`
-2. ติดตั้ง dependencies:
+React ติดต่อ Express ผ่าน endpoint `/api/...` ส่วน Express เป็นตัวกลางติดต่อ Trefle API และอ่าน `TREFLE_TOKEN` จาก Environment Variable เพื่อไม่ให้ต้องใส่ token ไว้ในโค้ด Frontend
+
+### การจัดเก็บข้อมูล
+
+| ข้อมูล | ที่จัดเก็บตามโค้ดปัจจุบัน | หมายเหตุ |
+|---|---|---|
+| รายการโปรดในเบราว์เซอร์ | `localStorage` | เป็นแหล่งข้อมูลที่ Frontend ใช้ตรวจสถานะรายการโปรดและมีข้อมูลสำรองเมื่อเรียก API ไม่สำเร็จ |
+| รายการโปรดฝั่ง Express | `Map` ในหน่วยความจำ | Frontend พยายามส่งการเพิ่ม/ลบไปยัง Express; ข้อมูลฝั่งเซิร์ฟเวอร์หายเมื่อเซิร์ฟเวอร์เริ่มใหม่ |
+| คำค้นและผลการค้นหา | `sessionStorage` | คงอยู่ภายใน session ของแท็บเบราว์เซอร์ |
+| ประวัติการเปิดดู | `sessionStorage` | บันทึก slug ชื่อ และเวลาที่เปิดดู; ล้างได้จากหน้า Viewing History |
+| รายการแนะนำ | หน่วยความจำ Express | Cache ภายในบริการเป็นเวลา 30 นาที |
+
+> **หมายเหตุสำคัญเกี่ยวกับ Favorites:** โค้ดปัจจุบันใช้ทั้ง `localStorage` ฝั่ง Frontend และ `Map` ฝั่ง Express โดย `checkFavorite()` ตรวจจาก `localStorage` และ `addFavorite()` / `removeFavorite()` อัปเดต `localStorage` ก่อนแล้วจึงพยายามเรียก Express ทั้งนี้คำขอ API ในสองฟังก์ชันดังกล่าวมีการดักข้อผิดพลาดไว้ จึงยังไม่ควรถือว่าการบันทึกฝั่ง Express สำเร็จทุกครั้ง ควรปรับการจัดการ error ในโค้ดก่อนใช้เป็นหลักฐานว่า Backend บันทึกสำเร็จ
+
+## 3. การติดตั้งและเริ่มใช้งาน
+
+### สิ่งที่ต้องมี
+
+- Node.js และ npm
+- Trefle API token
+
+### ขั้นตอนติดตั้ง
+
+1. Clone repository และเปลี่ยนเข้าโฟลเดอร์โปรเจกต์
+
+   ```bash
+   git clone https://github.com/kumlaikaewnatcha-web/trefle-plant-shop.git
+   cd trefle-plant-shop
+   ```
+
+2. เปลี่ยนไปยัง branch ที่ใช้พัฒนา
+
+   ```bash
+   git checkout feature/frontend-ux
+   ```
+
+3. ติดตั้ง dependencies
 
    ```bash
    npm install
    ```
 
-3. สร้างไฟล์ `.env` ที่ root ของโปรเจกต์ แล้วกำหนด token:
+4. สร้างไฟล์ `.env` ที่ root ของโปรเจกต์ และกำหนด token
 
    ```env
    TREFLE_TOKEN=ใส่_TREFLE_API_TOKEN_ของคุณ
    ```
 
-4. รัน Frontend และ Express ในโหมดพัฒนา:
+5. เริ่ม Frontend และ Express พร้อมกันในโหมดพัฒนา
 
    ```bash
    npm run dev
    ```
 
-5. สร้างไฟล์สำหรับ production:
+   Vite จะให้บริการ Frontend และ proxy คำขอ `/api` ไปยัง Express ที่ `http://localhost:3000`
 
-   ```bash
-   npm run build
-   ```
+6. เปิด URL ที่ Vite แสดงใน Terminal (โดยทั่วไปคือ `http://localhost:5173`)
 
-6. รัน Express:
+### คำสั่งที่ใช้
 
-   ```bash
-   npm start
-   ```
+| คำสั่ง | หน้าที่ |
+|---|---|
+| `npm install` | ติดตั้ง dependencies |
+| `npm run dev` | เริ่ม Vite และ Express พร้อมกัน |
+| `npm run build` | build Frontend ไปยังโฟลเดอร์ `dist/` |
+| `npm start` | เริ่ม Express server |
+| `npm run preview` | เปิดดูผล build ด้วย Vite Preview |
 
-> อย่า commit ไฟล์ `.env` หรือเปิดเผย `TREFLE_TOKEN` ในโค้ดสาธารณะ หาก deploy ให้ตั้งค่า token ใน Environment Variables ของแพลตฟอร์มก่อน
+> อย่า commit ไฟล์ `.env` หรือเปิดเผย `TREFLE_TOKEN` ในโค้ดสาธารณะ หาก deploy ให้กำหนด token ผ่าน Environment Variables ของแพลตฟอร์ม
 
 ## 4. API Endpoints
 
+Express มี endpoint ดังนี้
+
 | Method | Endpoint | หน้าที่ |
 |---|---|---|
-| GET | `/api/plants/search?q=rose` | ค้นหาต้นไม้จากคำค้น `q`; ถ้าไม่มีคำค้นจะตอบสถานะ 400 |
-| GET | `/api/plants/recommendations` | ส่งรายการดอกไม้แนะนำ โดยรวบรวมข้อมูลจากหลายคำค้นและจัดอันดับความครบถ้วนของข้อมูลดูแล |
-| GET | `/api/plants/:slug` | ดึงรายละเอียดต้นไม้จาก slug |
-| GET | `/api/favorites` | ดึงรายการโปรดทั้งหมด |
-| POST | `/api/favorites` | เพิ่มต้นไม้โปรด โดยตรวจสอบว่ามี `slug` ที่เป็นข้อความไม่ว่าง |
-| GET | `/api/favorites/:slug` | ตรวจสอบว่าต้นไม้เป็นรายการโปรดหรือไม่ |
-| DELETE | `/api/favorites/:slug` | ลบต้นไม้ออกจากรายการโปรด |
-| GET | `/api/test` | ตรวจสอบว่า Express API ทำงานอยู่ |
+| `GET` | `/api/plants/search?q=rose` | ค้นหาต้นไม้จากคำค้น `q`; ถ้าไม่มีคำค้นจะตอบสถานะ `400` |
+| `GET` | `/api/plants/recommendations` | ส่งรายการดอกไม้แนะนำ โดยรวบรวมผลจากหลายคำค้นและจัดอันดับความครบถ้วนของข้อมูลดูแล |
+| `GET` | `/api/plants/:slug` | ดึงรายละเอียดต้นไม้จาก slug |
+| `GET` | `/api/favorites` | ดึงรายการโปรดที่อยู่ใน `Map` ฝั่ง Express |
+| `POST` | `/api/favorites` | เพิ่มต้นไม้โปรด โดยตรวจสอบว่า `slug` เป็นข้อความที่ไม่ว่าง |
+| `GET` | `/api/favorites/:slug` | ตรวจสอบว่ามีต้นไม้ slug นี้ในรายการโปรดฝั่ง Express หรือไม่ |
+| `DELETE` | `/api/favorites/:slug` | ลบต้นไม้ออกจากรายการโปรดฝั่ง Express |
+| `GET` | `/api/test` | ตรวจสอบว่า Express API ทำงานอยู่ |
 
-**หมายเหตุเกี่ยวกับข้อมูล:** รายการแนะนำถูก cache ในหน่วยความจำเซิร์ฟเวอร์ 30 นาที ส่วนรายการโปรดเก็บในหน่วยความจำ จึงถูกล้างเมื่อเซิร์ฟเวอร์เริ่มใหม่ ประวัติการดูและสถานะค้นหาเก็บใน `sessionStorage` ของแท็บ/เซสชันเบราว์เซอร์
+ตัวอย่างการเพิ่มรายการโปรดด้วย JSON:
 
-## 5. โครงสร้างไฟล์สำคัญ
+```http
+POST /api/favorites
+Content-Type: application/json
 
-```text
-frontend/
-  index.html
-  public/            ไฟล์ static ที่ Vite ให้บริการ เช่นวิดีโอหน้าแรก
-  vite.config.js
-  src/
-    components/      ส่วนประกอบ UI ที่ใช้ร่วมกัน เช่น PlantCard, PlantCare, Feedback
-    pages/           HomePage, FavoritesPage, HistoryPage, PlantDetailPage
-    services/        API client สำหรับเรียก Express
-    utils/           Insertion Sort และฟังก์ชันจัดการ sessionStorage
-    Graph.js         adjacency list ของการเชื่อมโยงหน้าต่าง ๆ และ BFS
-    main.jsx         จุดเริ่มต้น React และ React Router
-    styles.css       CSS ของเว็บไซต์
-backend/
-  routes/            เส้นทาง API ของ Express
-  services/          Trefle API และ favorite service
-  index.js           จุดเริ่มต้น Express
-  server.js          entry point สำรองที่ส่งออกแอปหลัก
-api/
-  index.js           adapter สำหรับ deploy Express API บน Vercel
-package.json         scripts และ dependencies ที่ใช้ร่วมกัน
+{
+  "slug": "ตัวอย่าง-slug",
+  "common_name": "ตัวอย่างต้นไม้"
+}
 ```
 
-## 6. Graph.js: การเชื่อมโยงหน้าเว็บ
+### การทำงานของ Backend
 
-ไฟล์ `frontend/src/Graph.js` เก็บกราฟแบบ **adjacency list** โดย node คือหน้าเว็บ และ edge คือการเชื่อมไปยังหน้าอื่น
+- ตรวจสอบคำค้นก่อนเรียก Trefle API
+- อ่าน API token จาก `process.env.TREFLE_TOKEN`
+- กำหนด timeout ให้คำขอ Trefle API
+- จัดการกรณีเชื่อมต่อ API ไม่สำเร็จ, HTTP error และ JSON ไม่ถูกต้อง
+- รวมผลดอกไม้แนะนำจากหลายคำค้น และดึงรายละเอียดเพิ่มเติม
+- Cache รายการแนะนำในหน่วยความจำ 30 นาที
+- ตรวจสอบข้อมูล `slug` ก่อนเพิ่มรายการโปรด
+- มี Error Middleware สำหรับส่ง error กลับเป็น JSON
+
+## 5. โครงสร้างโปรเจกต์
+
+```text
+.
+├── api/
+│   └── index.js                    # adapter สำหรับส่งออก Express app
+├── backend/
+│   ├── index.js                    # สร้าง Express app และ Error Middleware
+│   ├── routes/
+│   │   ├── plantRoutes.js          # endpoints เกี่ยวกับต้นไม้
+│   │   └── favoriteRoutes.js       # endpoints เกี่ยวกับรายการโปรด
+│   └── services/
+│       ├── trefleService.js        # ติดต่อ Trefle API และ cache คำแนะนำ
+│       └── favoriteService.js      # จัดเก็บ Favorites ด้วย Map
+├── frontend/
+│   ├── index.html
+│   ├── public/
+│   │   └── Cows_grazing_on_green_hills_1080p_20261024124512.mp4
+│   ├── vite.config.js
+│   └── src/
+│       ├── Graph.js                # adjacency list และ BFS
+│       ├── main.jsx                # React Router และจุดเริ่มต้นแอป
+│       ├── components/
+│       │   ├── DetailPanel.jsx
+│       │   ├── Feedback.jsx
+│       │   ├── HomeHero.jsx
+│       │   ├── PageContainer.jsx
+│       │   ├── PlantCard.jsx
+│       │   ├── PlantCare.jsx
+│       │   ├── PlantDetail.jsx
+│       │   ├── PlantGrid.jsx
+│       │   ├── PlantHistoryCard.jsx
+│       │   ├── PlantSearchSection.jsx
+│       │   ├── RecommendationsSection.jsx
+│       │   ├── ResultSection.jsx
+│       │   └── SiteLayout.jsx
+│       ├── pages/
+│       │   ├── HomePage.jsx
+│       │   ├── PlantDetailPage.jsx
+│       │   ├── FavoritesPage.jsx
+│       │   └── HistoryPage.jsx
+│       ├── services/
+│       │   └── plantApi.js
+│       ├── utils/
+│       │   ├── plantCare.js
+│       │   └── plantUtils.js
+│       └── styles.css
+├── .gitignore
+├── package.json
+├── package-lock.json
+├── README.md
+└── vercel.json
+```
+
+## 6. User Flow และการปรับปรุง UX
+
+### User Flow ปัจจุบัน
+
+```mermaid
+flowchart TD
+    A[เปิดหน้า Home] --> B[ดูดอกไม้แนะนำ หรือพิมพ์ค้นหา]
+    B --> C[ดูผลการค้นหาที่เรียง A-Z]
+    C --> D[เลือก View details]
+    D --> E[ดูรายละเอียดและข้อมูลการดูแล]
+    E --> F[บันทึกหรือเอาออกจาก Favorites]
+    F --> G[เปิดหน้า Favorites เพื่อดูรายการที่บันทึก]
+    E --> H[ระบบบันทึกประวัติการเปิดดู]
+    H --> I[เปิดหน้า Viewing History]
+```
+
+### การปรับปรุง Flow ในเวอร์ชันนี้
+
+1. **เริ่มค้นหาหรือเลือกจากรายการแนะนำได้ทันที:** หน้า Home แสดงดอกไม้แนะนำ และมีช่องค้นหาในส่วน Hero
+2. **เข้าถึงรายละเอียดจากการ์ด:** ผู้ใช้กด `View details` จากการ์ดเพื่อเปิดหน้ารายละเอียดได้โดยตรง
+3. **ดูข้อมูลในหน้าเดียว:** หน้ารายละเอียดแสดงชื่อ รูปภาพ สถานะ Favorites และข้อมูลการดูแลที่มีจาก API
+4. **เก็บต้นไม้ที่สนใจ:** ผู้ใช้กด Save/Remove จากการ์ดหรือหน้ารายละเอียดได้
+5. **ย้อนดูข้อมูลเดิม:** มีหน้า Favorites และ Viewing History ช่วยให้ผู้ใช้กลับไปยังต้นไม้ที่สนใจโดยไม่ต้องเริ่มค้นหาใหม่
+6. **คงผลค้นหาใน session:** คำค้นและผลการค้นหาถูกเก็บใน `sessionStorage` เพื่อช่วยรักษาสถานะระหว่างการเปลี่ยนหน้า
+
+### เปรียบเทียบ Before → After
+
+> **ต้องเติมข้อมูลและภาพจากงานแรกจริงก่อนส่งงาน** เนื่องจากยังไม่มีภาพหน้าจอเวอร์ชันแรกแนบมาในคำขอนี้ ไม่ควรระบุว่าเวอร์ชันแรกไม่มีฟีเจอร์ใด หากระบบเดิมมีฟีเจอร์นั้นอยู่แล้ว
+
+| ประเด็น | Before: งาน API ครั้งแรก | After: เวอร์ชันปัจจุบัน |
+|---|---|---|
+| การเริ่มค้นหา/เลือกต้นไม้ | [เติมขั้นตอนตามระบบเดิมและแนบภาพจริง] | มีรายการแนะนำบน Home และช่องค้นหาในหน้าเดียว |
+| การดูรายละเอียด | [เติมพฤติกรรมของเวอร์ชันแรก] | เปิดหน้า Plant Detail จากปุ่ม `View details` บนการ์ด |
+| ข้อมูลการดูแล | [เติมข้อมูลที่เวอร์ชันแรกแสดงจริง] | แสดงข้อมูลการดูแลที่แปลงจากข้อมูลต้นไม้ที่ API ส่งกลับ |
+| การกลับมาดูต้นไม้ที่สนใจ | [เติมวิธีเดิม] | มี Favorites และ Viewing History |
+| การรักษาผลค้นหา | [เติมพฤติกรรมเดิม] | เก็บคำค้นและผลการค้นหาใน `sessionStorage` |
+
+### ภาพหลักฐาน Before / After ที่ต้องเพิ่ม
+
+สร้างโฟลเดอร์ `docs/images/` ใน repository แล้วเพิ่มภาพจริงตามรายการนี้ จากนั้นจึงแทรก Markdown image link ในตารางหรือใต้หัวข้อนี้
+
+| ภาพที่ต้องใช้ | ชื่อไฟล์ที่แนะนำ |
+|---|---|
+| หน้า Home ก่อนปรับปรุง | `docs/images/before-home.png` |
+| หน้า Home หลังปรับปรุง | `docs/images/after-home.png` |
+| หน้ารายละเอียดก่อนปรับปรุง | `docs/images/before-detail.png` |
+| หน้ารายละเอียดหลังปรับปรุง | `docs/images/after-detail.png` |
+| หน้า Favorites หรือ Viewing History | `docs/images/after-favorites-history.png` |
+
+ตัวอย่าง Markdown สำหรับแทรกภาพหลังเพิ่มไฟล์แล้ว:
+
+```md
+![หน้า Home หลังปรับปรุง](docs/images/after-home.png)
+```
+
+## 7. Graph.js และการนำทางระหว่างหน้า
+
+ไฟล์ `frontend/src/Graph.js` เก็บ Graph แบบ **adjacency list** โดย node คือหน้าเว็บ และ edge คือความสัมพันธ์/ลิงก์ที่พาผู้ใช้จากหน้าหนึ่งไปอีกหน้าหนึ่ง
+
+### Node และเส้นเชื่อม
 
 | Node | URL | หน้าที่เชื่อมไปได้ตาม `pageGraph` |
 |---|---|---|
 | `home` | `/` | home, history, favorites, detail |
 | `favorites` | `/favorites.html` | home, history, favorites, detail |
 | `history` | `/history.html` | home, favorites, history, detail |
-| `detail` | `/plantDetail.html` | home, history, favorites, detail |
+| `detail` | `/plantDetail.html?slug=<slug>` | home, history, favorites, detail |
 
-นอกจากนี้ `canReach(start, end)` ใช้ **Breadth-First Search (BFS)** ตรวจว่ามีเส้นทางจากหน้าเริ่มต้นไปหน้าปลายทางหรือไม่ และ `checkGraph()` ใช้ตรวจหน้าที่ไปไม่ถึงหรือไม่มีเส้นทางกลับหน้าแรก
+แผนภาพการเชื่อมโยงหน้า (แสดง edge ระหว่างคนละหน้าเพื่อให้อ่านง่าย โดยในข้อมูล Graph มี self-edge ของแต่ละ node ด้วย):
 
-เมนูส่วนหัวสร้างจาก Graph: `SiteHeader` ระบุ node ปัจจุบันจาก URL แล้วเลือก edge ปลายทางที่มี `menuLabel` ใน `pageLabels` และใช้ `pagePaths` กำหนด URL ของ `<Link>` จึงกำหนดเมนูได้จากข้อมูล Graph โดยไม่ต้องเขียน `<Link>` แยกรายการใน JSX ทั้งนี้ `pageGraph` กำหนดลำดับแสดงเมนูตามลำดับ edge ของแต่ละ node
+```mermaid
+flowchart TD
+    H[Home<br/>/] --> F[Favorites<br/>/favorites.html]
+    H --> V[Viewing History<br/>/history.html]
+    H --> D[Plant Detail<br/>/plantDetail.html]
+    F --> H
+    F --> V
+    F --> D
+    V --> H
+    V --> F
+    V --> D
+    D --> H
+    D --> F
+    D --> V
+```
 
-## 7. DSA ที่ใช้กับข้อมูลจริง
+### การนำ Graph ไปใช้สร้างเมนู
 
-| DSA | ไฟล์/จุดที่ใช้ | เหตุผลที่เลือก | Complexity |
+1. `pageGraph` ระบุ node และ edge ของหน้าเว็บ
+2. `pagePaths` จับคู่ node กับ URL ที่ React Router ใช้
+3. `pageLabels` เก็บชื่อหน้าและ `menuLabel` สำหรับรายการที่ต้องแสดงในเมนู
+4. `SiteHeader` ใช้ `useLocation()` ตรวจ URL ปัจจุบัน แล้วหา node ปัจจุบันจาก `pagePaths`
+5. `SiteHeader` อ่าน edge ของ node ปัจจุบันจาก `pageGraph` และกรองปลายทางที่มี `menuLabel`
+6. ใช้ `map()` สร้าง `<Link>` จากข้อมูล Graph และ `pagePaths` โดยไม่เขียนรายการเมนูซ้ำแบบตายตัวใน JSX
+7. หน้า Plant Detail เข้าถึงได้จากลิงก์ `View details` บนการ์ดต้นไม้
+
+### BFS ใน Graph.js
+
+- `canReach(start, end, graph)` ใช้ Breadth-First Search (BFS) ตรวจว่ามีเส้นทางจาก node เริ่มต้นไปยัง node ปลายทางหรือไม่
+- `checkGraph()` ตรวจ node ที่ไปจาก Home ไม่ถึง (`orphans`) และ node ที่กลับไป Home ไม่ได้ (`deadEnds`)
+- Complexity ของ BFS คือ **O(V + E)** โดย V คือจำนวน node และ E คือจำนวน edge
+
+> หมายเหตุ: จากโค้ดปัจจุบัน เมนูอ่านข้อมูลจาก `pageGraph` จริง ส่วน `canReach()` และ `checkGraph()` เป็นฟังก์ชันตรวจสอบ Graph ที่ประกาศไว้ แต่ยังไม่พบการเรียกใช้งานใน flow ของหน้าเว็บขณะตรวจสอบ ควรอธิบายแยกกันในคลิป ไม่ควรกล่าวว่า BFS เป็นตัวสร้างเมนู
+
+## 8. DSA ที่ใช้กับข้อมูลจริง
+
+| DSA | ไฟล์/จุดที่ใช้ | ข้อมูลที่ประมวลผลและผลต่อ UX | Complexity |
 |---|---|---|---|
-| Insertion Sort | `frontend/src/utils/plantUtils.js`, เรียกใช้ใน `frontend/src/pages/HomePage.jsx` | เรียงผลการค้นหาตาม `common_name` ก่อนแสดงผล เพื่อให้ผู้ใช้ไล่ดูชื่อ A–Z ได้ง่าย | Best case: O(n); Average/Worst case: O(n²); ใช้พื้นที่เพิ่ม O(n) เพราะคัดลอก array ก่อนเรียง |
-| Hash Table ผ่าน `Map` | `backend/services/favoriteService.js` | ใช้ `slug` เป็น key เพื่อเพิ่ม ตรวจสอบ และลบรายการโปรดได้ตรงรายการ และไม่สร้าง key ซ้ำเมื่อบันทึก slug เดิม | `set/has/delete` เฉลี่ย O(1); พื้นที่ O(n) ตามจำนวนรายการโปรด |
-| Graph + BFS | `frontend/src/Graph.js` | ใช้แทนความสัมพันธ์ของหน้า และตรวจสอบการเข้าถึงหน้าด้วย BFS | BFS โดยทั่วไป O(V + E) โดย V คือจำนวนหน้าและ E คือจำนวนเส้นเชื่อม |
+| Insertion Sort | `frontend/src/utils/plantUtils.js` เรียกใช้ใน `frontend/src/pages/HomePage.jsx` | เรียงผลการค้นหาต้นไม้ตาม `common_name` ก่อนแสดงผล ทำให้ผู้ใช้ไล่ดูชื่อ A–Z ได้ง่าย | Best case O(n), Average/Worst case O(n²); ฟังก์ชันคัดลอก array ก่อนเรียงจึงมีพื้นที่เพิ่ม O(n) |
+| Hash Table ผ่าน `Map` | `backend/services/favoriteService.js` | ใช้ `slug` เป็น key สำหรับเพิ่ม ตรวจสอบ และลบรายการโปรด ลดการค้นหารายการด้วยการวน array | `set()`, `has()`, `delete()` เฉลี่ย O(1); พื้นที่ O(n) |
+| Graph + BFS | `frontend/src/Graph.js` | Graph เก็บความสัมพันธ์ของหน้า; BFS ตรวจสอบการเข้าถึง node ใน Graph | BFS O(V + E) |
 
-## 8. ตารางส่วนร่วมของสมาชิก
+### เหตุผลที่เลือกใช้
 
-กรุณาตรวจสอบชื่อ รหัส และงานที่รับผิดชอบให้ตรงกับงานจริงและ commit history ของแต่ละคนก่อนส่ง
+- **Insertion Sort:** เหมาะสำหรับอธิบายการเรียงข้อมูลในโปรเจกต์ และทำให้ผลค้นหามีลำดับ A–Z ก่อนแสดงแก่ผู้ใช้
+- **Hash Table (`Map`):** ใช้ slug ซึ่งเป็นตัวระบุของต้นไม้เป็น key ทำให้เพิ่ม ตรวจสอบ และลบรายการโปรดได้โดยตรง
+- **Graph:** แทนความสัมพันธ์การนำทางของแต่ละหน้าอย่างชัดเจน และสามารถตรวจสอบเส้นทางด้วย BFS ได้
+
+## 9. ตารางส่วนร่วมของสมาชิก
+
+> ตารางด้านล่างยึดรายชื่อและบทบาทตาม README เดิม ต้องให้สมาชิกตรวจสอบและแก้ไขให้ตรงกับงานที่ทำจริง รวมถึงชื่อไฟล์/Component/Route/DSA และช่วงเวลาที่นำเสนอ ก่อนส่งงาน
 
 | ชื่อ-สกุล | รหัสนักศึกษา | ชิ้นงานที่รับผิดชอบ (ไฟล์ / component / route / DSA) | ช่วงที่นำเสนอในคลิป |
 |---|---|---|---|
-| นางสาวธัญญ์นรี ทองอินทร์ | 681310012 | UX/UI และการจัดหน้าเว็บ — โปรดตรวจสอบให้ตรงกับงาน/commit จริง | เติมเวลาในคลิป |
-| นางสาววรินทร มาสาและ | 681310022 | DSA — โปรดตรวจสอบไฟล์และ commit ที่รับผิดชอบจริง | เติมเวลาในคลิป |
-| นางสาวนัทชา กำไลแก้ว | 681310402 | Backend/API — โปรดตรวจสอบ route/service และ commit ที่รับผิดชอบจริง | เติมเวลาในคลิป |
+| นางสาวธัญญ์นรี ทองอินทร์ | 681310012 | UX/UI และส่วน Frontend — ระบุชื่อไฟล์/Component ที่รับผิดชอบจริงเพิ่มเติม | เติมเวลาจริงหลังตัดต่อคลิป |
+| นางสาววรินทร มาสาและ | 681310022 | DSA — ระบุอัลกอริทึมและไฟล์ที่รับผิดชอบจริงเพิ่มเติม | เติมเวลาจริงหลังตัดต่อคลิป |
+| นางสาวนัทชา กำไลแก้ว | 681310402 | Backend/API — ระบุ Route/Service ที่รับผิดชอบจริงเพิ่มเติม | เติมเวลาจริงหลังตัดต่อคลิป |
 
-## 9. ตารางข้อแนะนำจากงานแรก → สิ่งที่แก้
+**สำคัญ:** ใบงานให้ระบุชิ้นงานที่ตรวจสอบได้แทนการแบ่งเป็นเปอร์เซ็นต์ และข้อมูลควรสอดคล้องกับ commit history ของ GitHub สมาชิกทุกคนควรตรวจสอบบัญชีผู้เขียน commit และประวัติการทำงานของตนเองก่อนส่ง
 
-| ข้อแนะนำจากงานแรก | สิ่งที่แก้ในงานนี้ | หลักฐาน Before / After |
+## 10. ตารางข้อแนะนำจากงานแรก → สิ่งที่แก้
+
+> ข้อแนะนำในคอลัมน์แรกด้านล่างเป็นข้อความสรุปจาก README เดิม โปรดตรวจเทียบกับข้อเสนอแนะจริงที่ได้รับจากงานแรก และแก้ถ้อยคำให้ตรงกับหลักฐาน/คำแนะนำของอาจารย์
+
+| ข้อแนะนำจากงานแรก | สิ่งที่แก้ในงานนี้ | หลักฐาน Before / After ที่ต้องแนบ |
 |---|---|---|
-| “อยากให้มีข้อมูลรายละเอียดมากกว่านี้” | เพิ่มหน้า Plant Detail และส่วนข้อมูลการดูแลต้นไม้ใน `PlantDetail.jsx` และ `PlantCare.jsx` | **ต้องแนบภาพจริง** หน้าเดิมจากงานแรกและหน้ารายละเอียดเวอร์ชันปัจจุบัน |
-| “แต่งหน้าเว็บให้ดีขึ้น” | ปรับ layout, hero, การ์ดต้นไม้ และรูปแบบการแสดงข้อมูลใน React/CSS | **ต้องแนบภาพจริง** หน้าเว็บก่อนปรับและหลังปรับ |
-| “การกดถูกใจยัง basic ไป” | เพิ่มสถานะรายการโปรดบนการ์ด/หน้ารายละเอียด พร้อมเพิ่มและลบผ่าน Express API | **ต้องแนบภาพจริง** ขั้นตอนก่อนและหลัง หรือภาพการใช้งานเพิ่ม/ลบรายการโปรด |
-| เพิ่มประสบการณ์การใช้งาน | เพิ่มหน้า Viewing History และปุ่ม Clear History เพื่อย้อนดูต้นไม้ที่เปิดล่าสุด | **แนบภาพจริง** หน้าประวัติการดูและตัวอย่างการล้างประวัติ |
+| ต้องการข้อมูลรายละเอียดต้นไม้มากขึ้น | เพิ่มหน้า Plant Detail และส่วนข้อมูลการดูแลใน `frontend/src/components/PlantDetail.jsx` และ `PlantCare.jsx` | ภาพหน้ารายละเอียดเวอร์ชันแรกและเวอร์ชันปัจจุบัน |
+| ต้องการปรับปรุงหน้าตาและการจัดวาง | ปรับ Hero, การ์ดต้นไม้, layout และ CSS ใน React | ภาพหน้าเว็บก่อนปรับและหลังปรับ |
+| ต้องการให้การจัดการรายการโปรดสะดวกขึ้น | เพิ่ม/ลบรายการโปรดจากการ์ดและหน้ารายละเอียด พร้อมเชื่อม API | ภาพขั้นตอนการบันทึก/นำออก และผลที่แสดงต่อผู้ใช้ |
+| ต้องการให้กลับมาดูต้นไม้ที่เคยเปิดได้ | เพิ่ม Viewing History และปุ่ม Clear History โดยใช้ `sessionStorage` | ภาพหน้าประวัติการดูและตัวอย่างหลังล้างประวัติ |
 
-> ใบงานกำหนดให้แสดง Before → After ด้วยภาพจริงทั้งสองเวอร์ชัน ตารางข้อความนี้เป็นคำอธิบายประกอบเท่านั้น ไม่ทดแทนภาพหลักฐาน
+> ภาพจริงทั้ง Before และ After เป็นหลักฐานที่ใบงานกำหนด ตารางข้อความอย่างเดียวไม่ทดแทนภาพหน้าจอได้
 
-## 10. ตาราง useState
+## 11. ตาราง useState
 
-ตารางนี้สรุป state ที่พบใน React components ปัจจุบัน เหตุผลที่ใช้ state คือค่าเหล่านี้เปลี่ยนระหว่างการใช้งานและมีผลต่อสิ่งที่แสดงบนหน้าจอ ส่วนค่าที่คำนวณจาก props/state อื่นไม่จำเป็นต้องเก็บซ้ำเป็น state
+ตารางนี้สรุป state ที่พบใน React components ตามโค้ดปัจจุบัน โดย state ใช้เก็บค่าที่เปลี่ยนระหว่างการใช้งานและมีผลต่อการ render ส่วนค่าที่คำนวณจาก props/state อื่นไม่จำเป็นต้องเก็บซ้ำเป็น state
 
 | ชื่อ state | เก็บข้อมูลอะไร | อยู่ใน component | เปลี่ยนค่าเมื่อใด / โดยใคร | ทำไมต้องเป็น state |
 |---|---|---|---|---|
-| `query` | คำค้นต้นไม้ | `HomePage` | ผู้ใช้พิมพ์ผ่าน `HomeHero` และ `onQueryChange` | ให้ช่องค้นหาแสดงค่าล่าสุด |
-| `searchViewActive` | เปิดโหมดแสดงผลค้นหาหรือไม่ | `HomePage` | เมื่อเริ่มค้นหา ล้างคำค้น หรือกู้คืนคำค้นเดิม | ควบคุมว่าจะแสดงส่วนแนะนำหรือผลค้นหา |
-| `plants` | ผลการค้นหาหรือ `null` ก่อนค้นหา | `HomePage` | เมื่อ API ตอบกลับ ค้นหาล้มเหลว หรือล้างการค้นหา | ใช้แสดงผลลัพธ์และสถานะว่าง |
+| `query` | คำค้นต้นไม้ | `HomePage` | ผู้ใช้พิมพ์ใน `HomeHero` ผ่าน `onQueryChange` | ให้ช่องค้นหาแสดงค่าล่าสุด |
+| `searchViewActive` | เปิดโหมดแสดงผลค้นหาหรือไม่ | `HomePage` | เมื่อค้นหา ล้างคำค้น หรือกู้คืนคำค้นจาก session | ควบคุมการแสดงส่วนแนะนำและผลค้นหา |
+| `plants` | ผลการค้นหาหรือ `null` ก่อนค้นหา | `HomePage` | เมื่อ API ตอบกลับ ค้นหาล้มเหลว หรือล้างการค้นหา | ใช้แสดงผลลัพธ์/สถานะว่าง |
 | `selectedSlug` | slug ของต้นไม้ที่เลือก | `HomePage` | เมื่อเปิดรายละเอียดหรือเริ่มค้นหาใหม่ | แสดงว่าการ์ดใดถูกเลือก |
-| `searchLoading` | กำลังค้นหาหรือไม่ | `HomePage` | ก่อน/หลังคำขอค้นหา | แสดง Loading ระหว่างรอ API |
-| `searchError` | การค้นหาผิดพลาดหรือไม่ | `HomePage` | เมื่อคำขอล้มเหลว หรือเริ่มค้นหาใหม่ | แสดงข้อความ Error ที่เหมาะสม |
-| `recommendations` | รายการต้นไม้แนะนำ | `HomePage` | หลัง API คำแนะนำสำเร็จ | แสดงรายการแนะนำที่โหลดจาก Express |
-| `recommendationsLoading` | กำลังโหลดคำแนะนำหรือไม่ | `HomePage` | เริ่มต้นเป็น true และเปลี่ยนหลัง API เสร็จ | แสดง Loading ของส่วนแนะนำ |
-| `recommendationsError` | คำขอคำแนะนำผิดพลาดหรือไม่ | `HomePage` | เมื่อ API ล้มเหลว | แสดง Error ของส่วนแนะนำ |
+| `searchLoading` | กำลังค้นหาหรือไม่ | `HomePage` | ก่อนและหลังคำขอค้นหา | แสดง Loading ระหว่างรอ API |
+| `searchError` | การค้นหาผิดพลาดหรือไม่ | `HomePage` | เมื่อคำขอล้มเหลวหรือเริ่มค้นหาใหม่ | แสดง Error ที่สัมพันธ์กับการค้นหา |
+| `recommendations` | รายการต้นไม้แนะนำ | `HomePage` | หลัง API คำแนะนำตอบกลับสำเร็จ | แสดงรายการแนะนำที่โหลดจาก Express |
+| `recommendationsLoading` | กำลังโหลดคำแนะนำหรือไม่ | `HomePage` | เริ่มต้นเป็น `true` และเปลี่ยนหลัง API เสร็จ | แสดง Loading ของส่วนแนะนำ |
+| `recommendationsError` | คำขอคำแนะนำผิดพลาดหรือไม่ | `HomePage` | เมื่อ API คำแนะนำล้มเหลว | แสดง Error ของส่วนแนะนำ |
 | `plants` | รายการโปรด | `FavoritesPage` | หลังโหลด API และเมื่อลบรายการจากการ์ด | อัปเดตรายการที่เห็นโดยไม่โหลดทั้งหน้า |
 | `loading` | กำลังโหลดรายการโปรดหรือไม่ | `FavoritesPage` | ระหว่างเรียก API รายการโปรด | แสดง Loading |
 | `error` | โหลดรายการโปรดผิดพลาดหรือไม่ | `FavoritesPage` | เมื่อคำขอล้มเหลว | แสดง Error |
-| `plants` | ประวัติการเปิดดู | `HistoryPage` | เริ่มจาก sessionStorage และเปลี่ยนเมื่อกด Clear History | แสดงประวัติล่าสุดและผลหลังล้าง |
+| `plants` | ประวัติการเปิดดู | `HistoryPage` | เริ่มจาก `sessionStorage` และเปลี่ยนเมื่อกด Clear History | แสดงประวัติล่าสุดและผลหลังล้าง |
 | `plant` | รายละเอียดต้นไม้ที่โหลดแล้ว | `PlantDetailPage` | เมื่อ slug เปลี่ยนและ API ตอบกลับ | แสดงข้อมูลต้นไม้ที่ตรงกับ URL |
-| `loading` | กำลังโหลดรายละเอียดหรือไม่ | `PlantDetailPage` | ก่อน/หลังเรียก API รายละเอียด | แสดง Loading |
+| `loading` | กำลังโหลดรายละเอียดหรือไม่ | `PlantDetailPage` | ก่อนและหลังเรียก API รายละเอียด | แสดง Loading |
 | `error` | โหลดรายละเอียดผิดพลาดหรือไม่ | `PlantDetailPage` | เมื่อไม่มี slug หรือ API ล้มเหลว | แสดง Error แทนรายละเอียดที่ไม่มี |
-| `favorite` | สถานะรายการโปรดของต้นไม้ | `PlantCard` | หลังตรวจสอบ API และเมื่อเพิ่ม/ลบรายการ | เปลี่ยนป้ายและปุ่ม Save/Remove ตามข้อมูลจริง |
-| `saving` | กำลังบันทึกหรือลบรายการโปรดหรือไม่ | `PlantCard` | ระหว่าง POST/DELETE | ป้องกันการกดซ้ำและแสดงข้อความกำลังทำงาน |
-| `imageFailed` | รูปภาพการ์ดโหลดไม่สำเร็จหรือไม่ | `PlantCard` | เมื่อรูปเกิด `onError` | ซ่อนรูปที่โหลดไม่ได้ |
-| `favoriteError` | ข้อความข้อผิดพลาดการตรวจสอบรายการโปรด | `PlantCard` | เมื่อ API ตรวจสอบสถานะล้มเหลว | แสดง feedback และป้องกันการกดปุ่มที่สถานะไม่แน่นอน |
-| `favorite` | สถานะรายการโปรดในหน้ารายละเอียด | `PlantDetail` | หลังตรวจสอบ API และเมื่อเพิ่ม/ลบ | อัปเดตปุ่มรายการโปรด |
+| `favorite` | สถานะรายการโปรดของต้นไม้ | `PlantCard` | หลังตรวจสถานะจาก client storage และเมื่อเพิ่ม/ลบ | เปลี่ยนปุ่ม Save/Remove ตามสถานะที่เก็บไว้ |
+| `saving` | กำลังเพิ่มหรือลบรายการโปรดหรือไม่ | `PlantCard` | ระหว่างการทำงานของปุ่มรายการโปรด | แสดงสถานะกำลังทำงานและป้องกันการกดซ้ำ |
+| `imageFailed` | รูปภาพการ์ดโหลดไม่สำเร็จหรือไม่ | `PlantCard` | เมื่อรูปภาพเกิด `onError` | ซ่อนรูปที่โหลดไม่ได้ |
+| `favoriteError` | ข้อผิดพลาดเมื่อตรวจสถานะรายการโปรด | `PlantCard` | เมื่อการตรวจสอบสถานะเกิด error | แสดง feedback และป้องกันการกดปุ่มในสถานะไม่แน่นอน |
+| `favorite` | สถานะรายการโปรดในหน้ารายละเอียด | `PlantDetail` | หลังตรวจสถานะและเมื่อเพิ่ม/ลบ | อัปเดตปุ่มรายการโปรด |
 | `saving` | กำลังเพิ่มหรือลบรายการโปรดหรือไม่ | `PlantDetail` | ระหว่าง POST/DELETE | แสดงสถานะระหว่างบันทึกและป้องกันการกดซ้ำ |
-| `favoriteError` | การตรวจสอบสถานะรายการโปรดผิดพลาดหรือไม่ | `PlantDetail` | เมื่อ API ตรวจสอบสถานะล้มเหลว | แสดงข้อความแจ้งผู้ใช้ |
+| `favoriteError` | การตรวจสอบสถานะรายการโปรดผิดพลาดหรือไม่ | `PlantDetail` | เมื่อการตรวจสอบสถานะ API/client ล้มเหลว | แสดงข้อความแจ้งผู้ใช้ |
 
-## 11. ตาราง useEffect
+> `activeSearchId` ใน `HomePage` และ `recordedSlug` ใน `PlantDetailPage` เป็น `useRef` ไม่ใช่ state จึงไม่อยู่ในตาราง useState
+
+## 12. ตาราง useEffect
 
 | Component | Effect ทำอะไร | Dependency array | ทำงานตอนไหน |
 |---|---|---|---|
-| `HomePage` | ตั้งชื่อแท็บและเรียก API โหลดรายการแนะนำ; ใช้ cleanup flag ป้องกัน setState หลังออกจากหน้า | `[]` | เมื่อ component mount; cleanup ตอน unmount |
-| `FavoritesPage` | ตั้งชื่อแท็บและโหลดรายการโปรดจาก Express พร้อมจัดการ loading/error | `[]` | เมื่อ mount; cleanup ตอน unmount |
+| `HomePage` | ตั้งชื่อแท็บและเรียก API โหลดรายการแนะนำ พร้อม cleanup flag ป้องกัน setState หลังออกจากหน้า | `[]` | เมื่อ component mount; cleanup ตอน unmount |
+| `FavoritesPage` | ตั้งชื่อแท็บและโหลดรายการโปรดจาก Express/client service พร้อมจัดการ loading/error | `[]` | เมื่อ mount; cleanup ตอน unmount |
 | `HistoryPage` | ตั้งชื่อแท็บของหน้าประวัติ | `[]` | เมื่อ mount |
-| `PlantDetailPage` | ตั้งชื่อแท็บ โหลดรายละเอียดตาม slug และบันทึกประวัติเมื่อโหลดสำเร็จ | `[slug]` | เมื่อ mount และเมื่อค่า slug เปลี่ยน; cleanup ป้องกันอัปเดต state ของคำขอเก่า |
-| `PlantCard` | ตรวจสอบสถานะรายการโปรดของต้นไม้ ยกเว้นการ์ดที่อยู่ในหน้ารายการโปรด | `[plant.slug, Boolean(onRemove)]` | เมื่อ slug เปลี่ยนหรือเปลี่ยนโหมดการ์ด |
-| `PlantDetail` | ตรวจสอบสถานะรายการโปรดของต้นไม้ในหน้ารายละเอียด | `[plant.slug]` | เมื่อ slug ของต้นไม้เปลี่ยน |
+| `PlantDetailPage` | ตั้งชื่อแท็บ โหลดรายละเอียดตาม slug และบันทึกประวัติเมื่อโหลดสำเร็จ | `[slug]` | เมื่อ mount และเมื่อ slug เปลี่ยน; cleanup ป้องกันอัปเดตจากคำขอเก่า |
+| `PlantCard` | ตรวจสอบสถานะรายการโปรดของต้นไม้; ถ้ามี `onRemove` จะกำหนดสถานะเป็นรายการโปรดโดยไม่เรียกตรวจ API | `[plant.slug, Boolean(onRemove)]` | เมื่อ slug หรือโหมดการ์ดเปลี่ยน |
+| `PlantDetail` | ตรวจสอบสถานะรายการโปรดของต้นไม้ที่แสดง | `[plant.slug]` | เมื่อ slug ของต้นไม้เปลี่ยน |
 
-การกำหนด dependency ให้ตรงกับค่าที่ effect ใช้ ช่วยให้โหลดข้อมูลเมื่อจำเป็นเท่านั้น ส่วน cleanup flag ช่วยไม่ให้อัปเดต state หลัง component ถูกถอดออกจากหน้า
+การกำหนด dependency ให้สอดคล้องกับค่าที่ effect ใช้ ช่วยให้โหลดข้อมูลเมื่อจำเป็น ส่วน cleanup flag ใน effect ที่เรียก API ช่วยป้องกันการอัปเดต state หลัง component ถูกถอดออกจากหน้า หรือเมื่อผลลัพธ์จากคำขอเก่ากลับมาทีหลัง
 
-## 12. Component และ Props
+## 13. Component Tree และ Props
 
-ตัวอย่างทิศทางการส่ง props และ callback ในหน้าแรก:
+### Component Tree ภาพรวม
 
 ```text
-HomePage (ถือ state และจัดการค้นหา)
-├── HomeHero
-│   ├── query
-│   ├── searchViewActive
-│   ├── onQueryChange
-│   ├── onSearch
-│   └── onClearSearch
-├── RecommendationsSection
-│   ├── plants
-│   ├── loading
-│   └── error
-└── PlantSearchSection
-    ├── plants
-    ├── loading
-    ├── error
-    ├── selectedSlug
-    ├── query
-    └── onOpenDetails
-        └── PlantCard
-            └── plant, selected, onOpenDetails
+App (main.jsx)
+└── BrowserRouter
+    └── Routes
+        ├── /  → SiteLayout
+        │        ├── SiteHeader
+        │        ├── HomePage
+        │        │   ├── HomeHero
+        │        │   ├── RecommendationsSection
+        │        │   │   └── PlantCard
+        │        │   └── PlantSearchSection
+        │        │       └── SearchResults
+        │        │           └── PlantCard
+        │        └── SiteFooter
+        ├── /favorites.html → SiteLayout → FavoritesPage → PlantCard
+        ├── /history.html   → SiteLayout → HistoryPage → PlantHistoryCard
+        └── /plantDetail.html → SiteLayout → PlantDetailPage → PlantDetail → PlantCare
 ```
 
-- `HomePage` ถือ state การค้นหา เพราะข้อมูลเหล่านี้ใช้ควบคุมหลายส่วนของหน้า
-- `HomeHero` รับ `query` และ callback สำหรับแจ้งการพิมพ์ ค้นหา และล้างคำค้น
-- `PlantSearchSection` รับผลค้นหาและสถานะ แล้วเลือกแสดง Loading, Error, Empty หรือรายการการ์ด
-- `PlantCard` รับข้อมูลต้นไม้ผ่าน `plant` และเรียก `onOpenDetails` เมื่อผู้ใช้เปิดรายละเอียด
+### ตัวอย่างทิศทาง Props และ Callback ในหน้า Home
+
+```text
+HomePage (ถือ state และจัดการการค้นหา)
+  │
+  ├── ส่ง query, searchViewActive ───────────────→ HomeHero
+  │                                                   │
+  │                                                   └── onQueryChange(value)
+  │                                                           │
+  │  setQuery(value)  ←────────────────────────────────────────┘
+  │
+  ├── ส่ง onSearch={runSearch} ─────────────────→ HomeHero
+  │  (HomeHero เรียกเมื่อ submit form)
+  │
+  ├── ส่ง onClearSearch={clearSearch} ──────────→ HomeHero
+  │  (HomeHero เรียกเมื่อกด Clear search)
+  │
+  └── ส่ง plants, loading, error, selectedSlug ─→ PlantSearchSection
+                                                      │
+                                                      └── PlantCard
+                                                           │
+                                                           └── onOpenDetails(slug)
+                                                                  │
+                                   openDetails(slug)  ←───────────┘
+```
+
+### เหตุผลที่วาง State
+
+- `HomePage` ถือ state การค้นหา เพราะต้องควบคุมทั้งช่องค้นหา ส่วนแนะนำ และผลการค้นหา
+- `HomeHero` เป็น component สำหรับรับค่าและแจ้งเหตุการณ์ผ่าน callback ไม่ควรเป็นเจ้าของ state ผลการค้นหาหลัก
+- `PlantSearchSection` รับข้อมูลและสถานะจาก `HomePage` แล้วเลือกแสดง Loading, Error, Empty หรือรายการการ์ด
+- `PlantCard` รับ `plant`, `selected`, `onOpenDetails` และ `onRemove` ผ่าน props เพื่อแสดงข้อมูลและแจ้งเหตุการณ์กลับไปยัง component แม่
+- `PlantDetailPage` ถือ state รายละเอียดต้นไม้ เพราะต้องโหลดข้อมูลตาม slug ใน URL
+
+## 14. สถานะ UX และการจัดการข้อผิดพลาด
+
+| สถานะ | ตัวอย่างในโปรเจกต์ | การตอบสนองต่อผู้ใช้ |
+|---|---|---|
+| Loading | กำลังค้นหา, โหลดคำแนะนำ, รายการโปรด หรือรายละเอียด | แสดง `LoadingState` ระหว่างรอข้อมูล |
+| Empty | ยังไม่ค้นหา, ไม่พบต้นไม้, ไม่มีรายการโปรด หรือไม่มีประวัติ | แสดง `EmptyState` พร้อมข้อความแนะนำ |
+| Error | คำขอค้นหา/คำแนะนำ/รายการโปรด/รายละเอียดล้มเหลว | แสดง `ErrorState` หรือข้อความ error ใน component |
+| Success / มีข้อมูล | API ส่งข้อมูลกลับสำเร็จ | แสดงการ์ดต้นไม้ รายละเอียด หรือรายการที่บันทึกไว้ |
+
+**ข้อควรปรับปรุงก่อนส่ง:** ปัจจุบัน `addFavorite()` และ `removeFavorite()` ใน `frontend/src/services/plantApi.js` ดัก error จาก Express ด้วย `.catch(() => null)` ทำให้ component อาจเข้าใจว่าการทำงานเสร็จแล้ว แม้ Backend จะไม่สำเร็จ ควรแก้ให้ส่ง error กลับไปยัง component และแสดงข้อความสำเร็จ/ล้มเหลวตามผลจริงก่อนสาธิตหัวข้อ API error handling
