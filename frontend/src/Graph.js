@@ -1,8 +1,8 @@
 export const pageGraph = {
-    home: ["home", "history", "favorites", "detail"],
-    favorites: ["home", "history", "favorites", "detail"],
-    history: ["home", "favorites", "history", "detail"],
-    detail: ["home", "history", "favorites", "detail"],
+    home: ["history", "favorites", "detail"],
+    favorites: ["home", "history", "detail"],
+    history: ["home", "favorites", "detail"],
+    detail: ["home", "history", "favorites"],
 };
 
 export const pagePaths = {
