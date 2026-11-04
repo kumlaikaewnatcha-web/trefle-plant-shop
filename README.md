@@ -10,7 +10,7 @@
 - จดจำคำค้นและผลการค้นหาภายใน session ของแท็บเบราว์เซอร์
 - แสดงสถานะ Loading, Empty และ Error ในส่วนที่เกี่ยวข้อง
 
-## 2. เทคโนโลยีและสถาปัตยกรรม
+## 2. เทคโนโลยีที่นำมาใช้
 
 | ส่วน | เทคโนโลยี / หน้าที่ |
 |---|---|
@@ -19,18 +19,6 @@
 | External API | Trefle API |
 | Client storage | `sessionStorage` สำหรับสถานะการค้นหาและประวัติการดู |
 | DSA | Insertion Sort, key-based session storage และ Graph แบบ adjacency list |
-
-### ภาพรวมการทำงาน
-
-```mermaid
-flowchart LR
-    U[ผู้ใช้] --> F[React + Vite]
-    F -->|HTTP /api/...| E[Express Backend]
-    E -->|ส่ง token จาก Environment Variable| T[Trefle API]
-    T --> E
-    E -->|JSON response| F
-    F --> U
-```
 
 React ติดต่อ Express ผ่าน endpoint `/api/...` ส่วน Express เป็นตัวกลางติดต่อ Trefle API และอ่าน `TREFLE_TOKEN` จาก Environment Variable เพื่อไม่ให้ต้องใส่ token ไว้ในโค้ด Frontend
 
@@ -116,18 +104,6 @@ Express มี endpoint ดังนี้
 | `GET` | `/api/favorites/:slug` | ตรวจสอบว่าต้นไม้เป็น Favorite ของ browser session |
 | `DELETE` | `/api/favorites/:slug` | ลบต้นไม้จาก Favorites ของ browser session |
 | `GET` | `/api/test` | ตรวจสอบว่า Express API ทำงานอยู่ |
-
-ตัวอย่างการเพิ่มรายการโปรดด้วย JSON:
-
-```http
-POST /api/favorites
-Content-Type: application/json
-
-{
-  "slug": "ตัวอย่าง-slug",
-  "common_name": "ตัวอย่างต้นไม้"
-}
-```
 
 ### การทำงานของ Backend
 
@@ -354,68 +330,14 @@ flowchart TD
 
 การกำหนด dependency ให้สอดคล้องกับค่าที่ effect ใช้ ช่วยให้โหลดข้อมูลเมื่อจำเป็น ส่วน cleanup flag ใน effect ที่เรียก API ช่วยป้องกันการอัปเดต state หลัง component ถูกถอดออกจากหน้า หรือเมื่อผลลัพธ์จากคำขอเก่ากลับมาทีหลัง
 
-## 13. Component Tree และ Props
-
-### Component Tree ภาพรวม
-
-```text
-App (main.jsx)
-└── BrowserRouter
-    └── Routes
-        ├── /  → SiteLayout
-        │        ├── SiteHeader
-        │        ├── HomePage
-        │        │   ├── HomeHero
-        │        │   ├── RecommendationsSection
-        │        │   │   └── PlantCard
-        │        │   └── PlantSearchSection
-        │        │       └── SearchResults
-        │        │           └── PlantCard
-        │        └── SiteFooter
-        ├── /favorites.html → SiteLayout → FavoritesPage → PlantCard
-        ├── /history.html   → SiteLayout → HistoryPage → PlantHistoryCard
-        └── /plantDetail.html → SiteLayout → PlantDetailPage → PlantDetail → PlantCare
-```
-
-### ตัวอย่างทิศทาง Props และ Callback ในหน้า Home
-
-```text
-HomePage (ถือ state และจัดการการค้นหา)
-  │
-  ├── ส่ง query, searchViewActive ───────────────→ HomeHero
-  │                                                   │
-  │                                                   └── onQueryChange(value)
-  │                                                           │
-  │  setQuery(value)  ←────────────────────────────────────────┘
-  │
-  ├── ส่ง onSearch={runSearch} ─────────────────→ HomeHero
-  │  (HomeHero เรียกเมื่อ submit form)
-  │
-  ├── ส่ง onClearSearch={clearSearch} ──────────→ HomeHero
-  │  (HomeHero เรียกเมื่อกด Clear search)
-  │
-  └── ส่ง plants, loading, error, selectedSlug ─→ PlantSearchSection
-                                                      │
-                                                      └── PlantCard
-                                                           │
-                                                           └── onOpenDetails(slug)
-                                                                  │
-                                   openDetails(slug)  ←───────────┘
-```
-
-### เหตุผลที่วาง State
-
-- `HomePage` ถือ state การค้นหา เพราะต้องควบคุมทั้งช่องค้นหา ส่วนแนะนำ และผลการค้นหา
-- `HomeHero` เป็น component สำหรับรับค่าและแจ้งเหตุการณ์ผ่าน callback ไม่ควรเป็นเจ้าของ state ผลการค้นหาหลัก
-- `PlantSearchSection` รับข้อมูลและสถานะจาก `HomePage` แล้วเลือกแสดง Loading, Error, Empty หรือรายการการ์ด
-- `PlantCard` รับ `plant`, `selected`, `onOpenDetails` และ `onRemove` ผ่าน props เพื่อแสดงข้อมูลและแจ้งเหตุการณ์กลับไปยัง component แม่
-- `PlantDetailPage` ถือ state รายละเอียดต้นไม้ เพราะต้องโหลดข้อมูลตาม slug ใน URL
-
-## 14. สถานะ UX และการจัดการข้อผิดพลาด
+## 13. สถานะ UX และการจัดการข้อผิดพลาด
 
 | สถานะ | ตัวอย่างในโปรเจกต์ | การตอบสนองต่อผู้ใช้ |
 |---|---|---|
 | Loading | กำลังค้นหา, โหลดคำแนะนำ, รายการโปรด หรือรายละเอียด | แสดง `LoadingState` ระหว่างรอข้อมูล |
 | Empty | ยังไม่ค้นหา, ไม่พบต้นไม้, ไม่มีรายการโปรด หรือไม่มีประวัติ | แสดง `EmptyState` พร้อมข้อความแนะนำ |
+| Error | คำขอค้นหา/คำแนะนำ/รายการโปรด/รายละเอียดล้มเหลว | แสดง `ErrorState` หรือข้อความ error ใน component |
+| Success / มีข้อมูล | API ส่งข้อมูลกลับสำเร็จ | แสดงการ์ดต้นไม้ รายละเอียด หรือรายการที่บันทึกไว้ |
+ptyState` พร้อมข้อความแนะนำ |
 | Error | คำขอค้นหา/คำแนะนำ/รายการโปรด/รายละเอียดล้มเหลว | แสดง `ErrorState` หรือข้อความ error ใน component |
 | Success / มีข้อมูล | API ส่งข้อมูลกลับสำเร็จ | แสดงการ์ดต้นไม้ รายละเอียด หรือรายการที่บันทึกไว้ |
