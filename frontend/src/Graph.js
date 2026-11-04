@@ -21,10 +21,11 @@ export const pageLabels = {
 
 export function canReach(start, end, graph = pageGraph) {
     const queue = [start];
+    let head = 0;
     const visited = new Set([start]);
 
-    while (queue.length > 0) {
-        const current = queue.shift();
+    while (head < queue.length) {
+        const current = queue[head++];
         if (current === end) return true;
 
         for (const neighbor of graph[current] ?? []) {

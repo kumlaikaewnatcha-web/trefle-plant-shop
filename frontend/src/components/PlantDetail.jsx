@@ -17,6 +17,8 @@ export default function PlantDetail({ plant }) {
     // # ตรวจสอบสถานะรายการโปรดเมื่อเปลี่ยนต้นไม้ที่กำลังแสดง
     useEffect(() => {
         let active = true;
+        setFavorite(null);
+        setFavoriteError(false);
         checkFavorite(plant.slug)
             .then(result => {
                 if (active) setFavorite(result.favorite === true);

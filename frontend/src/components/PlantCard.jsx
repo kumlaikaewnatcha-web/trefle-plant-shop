@@ -12,11 +12,15 @@ export default function PlantCard({ plant, selected = false, onRemove, onOpenDet
 
     // # โหลดสถานะรายการโปรดเมื่อการ์ดแสดงผล ยกเว้นกรณีอยู่ในหน้ารายการโปรด
     useEffect(() => {
+        setImageFailed(false);
+        setFavoriteError("");
+
         if (onRemove) {
             setFavorite(true);
             return undefined;
         }
 
+        setFavorite(null);
         let active = true;
 
         checkFavorite(plant.slug)

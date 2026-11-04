@@ -52,10 +52,6 @@ async function readFavorites(ownerId) {
         return Array.isArray(plants) ? plants : [];
     }
 
-    if (process.env.VERCEL === "1") {
-        throw new Error("Persistent favorites storage is not configured");
-    }
-
     return Array.isArray(readLocalStore()[ownerId]) ? readLocalStore()[ownerId] : [];
 }
 
@@ -63,10 +59,6 @@ async function writeFavorites(ownerId, plants) {
     if (isRedisConfigured()) {
         await redisCommand("SET", storageKey(ownerId), JSON.stringify(plants));
         return;
-    }
-
-    if (process.env.VERCEL === "1") {
-        throw new Error("Persistent favorites storage is not configured");
     }
 
     const store = readLocalStore();

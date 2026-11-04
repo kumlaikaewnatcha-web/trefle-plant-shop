@@ -262,7 +262,7 @@ flowchart TD
 | `history` | `/history.html` | home, favorites, detail |
 | `detail` | `/plantDetail.html` | home, history, favorites |
 
-แผนภาพการเชื่อมโยงหน้า (แสดง edge ระหว่างคนละหน้าเพื่อให้อ่านง่าย โดยในข้อมูล Graph มี self-edge ของแต่ละ node ด้วย):
+แผนภาพการเชื่อมโยงหน้า (แสดงเฉพาะ edge ระหว่างคนละหน้า ซึ่งตรงกับข้อมูลใน `pageGraph`; แต่ละ node ไม่มี self-edge):
 
 ```mermaid
 flowchart TD
@@ -294,7 +294,7 @@ flowchart TD
 
 - `canReach(start, end, graph)` ใช้ Breadth-First Search (BFS) ตรวจว่ามีเส้นทางจาก node เริ่มต้นไปยัง node ปลายทางหรือไม่
 - `checkGraph()` ตรวจ node ที่ไปจาก Home ไม่ถึง (`orphans`) และ node ที่กลับไป Home ไม่ได้ (`deadEnds`)
-- Complexity ของ BFS คือ **O(V + E)** โดย V คือจำนวน node และ E คือจำนวน edge
+- Complexity ของ BFS คือ **O(V + E)** โดย V คือจำนวน node และ E คือจำนวน edge เนื่องจาก `canReach()` ใช้ตำแหน่ง `head` เพื่ออ่าน queue แบบคงที่ต่อ node แทนการ `shift()` สมาชิก Array
 
 > หมายเหตุ: จากโค้ดปัจจุบัน เมนูอ่านข้อมูลจาก `pageGraph` จริง ส่วน `canReach()` และ `checkGraph()` เป็นฟังก์ชันตรวจสอบ Graph ที่ประกาศไว้ แต่ยังไม่พบการเรียกใช้งานใน flow ของหน้าเว็บขณะตรวจสอบ ควรอธิบายแยกกันในคลิป ไม่ควรกล่าวว่า BFS เป็นตัวสร้างเมนู
 
@@ -330,7 +330,7 @@ flowchart TD
 
 | ข้อแนะนำจากงานแรก | สิ่งที่แก้ในงานนี้ | หลักฐาน Before / After ที่ต้องแนบ |
 |---|---|---|
-| ต้องการข้อมูลรายละเอียดต้นไม้มากขึ้น | เพิ่มหน้า Plant Detail และส่วนข้อมูลการดูแลใน `frontend/src/components/PlantDetail.jsx` และ `PlantCare.jsx` | ภาพหน้ารายละเอียดเวอร์ชันแรกและเวอร์ชันปัจจุบัน |
+| ต้องการข้อมูลรายละเอียดต้นไม้มากขึ้น | เพิ่มหน้า Plant Detail และส่วนข้อมูลการดูแลใน `frontend/src/components/PlantDetail.jsx` และ `PlantCare.jsx` | ![Before - Plant Detail](docs/before-detail.jpg)<br>![After - Plant Detail](docs/after-detail.png)<br>![After - Plant Detail 01](docs/after-detail.01.png) |
 | ต้องการปรับปรุงหน้าตาและการจัดวาง | ปรับ Hero, การ์ดต้นไม้, layout และ CSS ใน React | ภาพหน้าเว็บก่อนปรับและหลังปรับ |
 | ต้องการให้การจัดการรายการโปรดสะดวกขึ้น | เพิ่ม/ลบรายการโปรดจากการ์ดและหน้ารายละเอียด พร้อมเชื่อม API | ภาพขั้นตอนการบันทึก/นำออก และผลที่แสดงต่อผู้ใช้ |
 | ต้องการให้กลับมาดูต้นไม้ที่เคยเปิดได้ | เพิ่ม Viewing History และปุ่ม Clear History โดยใช้ `sessionStorage` | ภาพหน้าประวัติการดูและตัวอย่างหลังล้างประวัติ |
@@ -366,6 +366,7 @@ flowchart TD
 | `favorite` | สถานะรายการโปรดในหน้ารายละเอียด | `PlantDetail` | หลังตรวจสถานะและเมื่อเพิ่ม/ลบ | อัปเดตปุ่มรายการโปรด |
 | `saving` | กำลังเพิ่มหรือลบรายการโปรดหรือไม่ | `PlantDetail` | ระหว่าง POST/DELETE | แสดงสถานะระหว่างบันทึกและป้องกันการกดซ้ำ |
 | `favoriteError` | การตรวจสอบสถานะรายการโปรดผิดพลาดหรือไม่ | `PlantDetail` | เมื่อการตรวจสอบสถานะ API/client ล้มเหลว | แสดงข้อความแจ้งผู้ใช้ |
+| `imageFailed` | รูปภาพในหน้า Plant Detail โหลดไม่สำเร็จหรือไม่ | `PlantDetail` | เมื่อเกิด `onError` และถูกรีเซ็ตเมื่อ `plant.slug` เปลี่ยน | ซ่อนรูปที่โหลดไม่ได้และใช้สถานะใหม่สำหรับต้นไม้ถัดไป |
 
 > `activeSearchId` ใน `HomePage` และ `recordedSlug` ใน `PlantDetailPage` เป็น `useRef` ไม่ใช่ state จึงไม่อยู่ในตาราง useState
 
@@ -378,7 +379,8 @@ flowchart TD
 | `HistoryPage` | ตั้งชื่อแท็บของหน้าประวัติ | `[]` | เมื่อ mount |
 | `PlantDetailPage` | ตั้งชื่อแท็บ โหลดรายละเอียดตาม slug และบันทึกประวัติเมื่อโหลดสำเร็จ | `[slug]` | เมื่อ mount และเมื่อ slug เปลี่ยน; cleanup ป้องกันอัปเดตจากคำขอเก่า |
 | `PlantCard` | ตรวจสอบสถานะรายการโปรดของต้นไม้; ถ้ามี `onRemove` จะกำหนดสถานะเป็นรายการโปรดโดยไม่เรียกตรวจ API | `[plant.slug, Boolean(onRemove)]` | เมื่อ slug หรือโหมดการ์ดเปลี่ยน |
-| `PlantDetail` | ตรวจสอบสถานะรายการโปรดของต้นไม้ที่แสดง | `[plant.slug]` | เมื่อ slug ของต้นไม้เปลี่ยน |
+| `PlantDetail` | ตรวจสอบสถานะรายการโปรดของต้นไม้ที่แสดง พร้อม cleanup ป้องกันอัปเดต state หลังออกจากหน้าหรือคำขอเก่า | `[plant.slug]` | เมื่อ slug ของต้นไม้เปลี่ยน |
+| `PlantDetail` | รีเซ็ตสถานะความผิดพลาดของรูปภาพเป็น `false` เมื่อแสดงต้นไม้คนละ slug | `[plant.slug]` | เมื่อ slug เปลี่ยน |
 
 การกำหนด dependency ให้สอดคล้องกับค่าที่ effect ใช้ ช่วยให้โหลดข้อมูลเมื่อจำเป็น ส่วน cleanup flag ใน effect ที่เรียก API ช่วยป้องกันการอัปเดต state หลัง component ถูกถอดออกจากหน้า หรือเมื่อผลลัพธ์จากคำขอเก่ากลับมาทีหลัง
 
