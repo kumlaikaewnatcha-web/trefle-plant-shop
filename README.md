@@ -18,7 +18,7 @@
 | ต้องการข้อมูลรายละเอียดต้นไม้มากขึ้น | เพิ่มหน้า Plant Detail และส่วนข้อมูลการดูแลใน `frontend/src/components/PlantDetail.jsx` และ `PlantCare.jsx` | ![Before - Plant Detail](docs/before-detail.jpg)<br>![After - Plant Detail](docs/after-detail.png)<br>![After - Plant Detail 01](docs/after-detail.01.png) |
 
 
-## 13. ตารางส่วนร่วมของสมาชิก
+## 3. ตารางส่วนร่วมของสมาชิก
 
 
 | ชื่อ-สกุล | รหัสนักศึกษา | ชิ้นงานที่รับผิดชอบ (ไฟล์ / component / route / DSA) | ช่วงที่นำเสนอในคลิป |
@@ -27,7 +27,7 @@
 | นางสาววรินทร มาสาและ | 681310022 | DSA, Insertion Sort, Graph และตรรกะประวัติการดู | ช่วงเวลาที่นำเสนอจะระบุตามไฟล์คลิปที่ส่งจริง |
 | นางสาวนัทชา กำไลแก้ว | 681310402 | Backend/API, route/service และการจัดเก็บ Favorites | ช่วงเวลาที่นำเสนอจะระบุตามไฟล์คลิปที่ส่งจริง |
 
-## 3. ตาราง useState
+## 4. ตาราง useState
 
 
 | ชื่อ state | เก็บข้อมูลอะไร | อยู่ใน component | เปลี่ยนค่าเมื่อใด / โดยใคร | ทำไมต้องเป็น state |
@@ -59,7 +59,7 @@
 
 > `activeSearchId` ใน `HomePage` และ `recordedSlug` ใน `PlantDetailPage` เป็น `useRef` ไม่ใช่ state จึงไม่อยู่ในตาราง useState
 
-## 4. ตาราง useEffect
+## 5. ตาราง useEffect
 
 | Component | Effect ทำอะไร | Dependency array | ทำงานตอนไหน |
 |---|---|---|---|
@@ -72,7 +72,7 @@
 | `PlantDetail` | รีเซ็ตสถานะความผิดพลาดของรูปภาพเป็น `false` เมื่อแสดงต้นไม้คนละ slug | `[plant.slug]` | เมื่อ slug เปลี่ยน |
 
 
-## 5. สถานะ UX และการจัดการข้อผิดพลาด
+## 6. สถานะ UX และการจัดการข้อผิดพลาด
 
 | สถานะ | ตัวอย่างในโปรเจกต์ | การตอบสนองต่อผู้ใช้ |
 |---|---|---|
@@ -84,7 +84,7 @@ ptyState` พร้อมข้อความแนะนำ |
 | Error | คำขอค้นหา/คำแนะนำ/รายการโปรด/รายละเอียดล้มเหลว | แสดง `ErrorState` หรือข้อความ error ใน component |
 | Success / มีข้อมูล | API ส่งข้อมูลกลับสำเร็จ | แสดงการ์ดต้นไม้ รายละเอียด หรือรายการที่บันทึกไว้ |
 
-## 6. Graph.js และการนำทางระหว่างหน้า
+## 7. Graph.js และการนำทางระหว่างหน้า
 
 ไฟล์ `frontend/src/Graph.js` เก็บ Graph แบบ **adjacency list** โดย node คือหน้าเว็บ และ edge คือความสัมพันธ์/ลิงก์ที่พาผู้ใช้จากหน้าหนึ่งไปอีกหน้าหนึ่ง
 
@@ -156,7 +156,7 @@ React ติดต่อ Express ผ่าน endpoint `/api/...` ส่วน E
 
 > **ขอบเขต Favorites:** ระบบระบุตัวตนด้วย browser session cookie เท่านั้น ไม่ใช่บัญชีผู้ใช้ จึงไม่ซิงก์ Favorites ระหว่างอุปกรณ์และเบราว์เซอร์ต่างกัน บน Vercel ต้องกำหนด `KV_REST_API_URL` และ `KV_REST_API_TOKEN`
 
-## 8. การติดตั้งและเริ่มใช้งาน
+## 9. การติดตั้งและเริ่มใช้งาน
 
 ### สิ่งที่ต้องมี
 
@@ -212,7 +212,7 @@ React ติดต่อ Express ผ่าน endpoint `/api/...` ส่วน E
 
 > อย่า commit ไฟล์ `.env` หรือเปิดเผย `TREFLE_TOKEN` ในโค้ดสาธารณะ หาก deploy ให้กำหนด token ผ่าน Environment Variables ของแพลตฟอร์ม
 
-## 9. API Endpoints
+## 10. API Endpoints
 
 Express มี endpoint ดังนี้
 
@@ -238,7 +238,7 @@ Express มี endpoint ดังนี้
 - ตรวจสอบข้อมูล `slug` ก่อนเพิ่มรายการโปรด
 - มี Error Middleware สำหรับส่ง error กลับเป็น JSON
 
-## 10. โครงสร้างโปรเจกต์
+## 11. โครงสร้างโปรเจกต์
 
 ```text
 .
@@ -292,7 +292,7 @@ Express มี endpoint ดังนี้
 └── vercel.json
 ```
 
-## 11. User Flow และการปรับปรุง UX
+## 12. User Flow และการปรับปรุง UX
 
 ### User Flow ปัจจุบัน
 
@@ -318,7 +318,7 @@ flowchart TD
 6. **คงผลค้นหาใน session:** คำค้นและผลการค้นหาถูกเก็บใน `sessionStorage` เพื่อช่วยรักษาสถานะระหว่างการเปลี่ยนหน้า
 
 
-## 12. DSA ที่ใช้กับข้อมูลจริง
+## 13. DSA ที่ใช้กับข้อมูลจริง
 
 | DSA | ไฟล์/จุดที่ใช้ | ข้อมูลที่ประมวลผลและผลต่อ UX | Complexity |
 |---|---|---|---|
