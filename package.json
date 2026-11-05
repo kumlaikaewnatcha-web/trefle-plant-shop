@@ -1,11 +1,14 @@
+
 {
   "name": "trefle-plant-shop",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "node --watch src/index.js"
+    "dev": "node --watch src/index.js",
+    "build": "vite build frontend --config frontend/vite.config.js",
+    "preview": "vite preview frontend --config frontend/vite.config.js"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +16,14 @@
   "type": "commonjs",
   "dependencies": {
     "dotenv": "^18.0.4",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.8.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^10.0.6",
+    "vite": "^8.3.5"
   }
 }
