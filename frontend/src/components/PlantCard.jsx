@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { addFavorite, checkFavorite, removeFavorite } from "../services/plantApi";
+import {
+    addFavoritePlant,
+    isFavoritePlant,
+    removeFavoritePlant
+} from "../utils/plantUtils";
 
 // # การ์ดแสดงข้อมูลต้นไม้ พร้อมลิงก์รายละเอียดและปุ่มจัดการรายการโปรด
 export default function PlantCard({ plant, selected = false, onRemove, onOpenDetails }) {
@@ -23,14 +27,12 @@ export default function PlantCard({ plant, selected = false, onRemove, onOpenDet
         setFavorite(null);
         let active = true;
 
-        checkFavorite(plant.slug)
-            .then(result => {
-                if (active) setFavorite(result.favorite === true);
-            })
-            .catch(error => {
-                console.error("Check Favorite Error:", error);
-                if (active) setFavoriteError("Favorite status unavailable.");
-            });
+        try {
+            if (active) setFavorite(isFavoritePlant(plant.slug));
+        } catch (error) {
+            console.error("Check Favorite Error:", error);
+            if (active) setFavoriteError("Favorite status unavailable.");
+        }
 
         return () => {
             active = false;
@@ -44,11 +46,11 @@ export default function PlantCard({ plant, selected = false, onRemove, onOpenDet
         setSaving(true);
         try {
             if (favorite || onRemove) {
-                await removeFavorite(plant.slug);
+                removeFavoritePlant(plant.slug);
                 setFavorite(false);
                 if (onRemove) onRemove(plant.slug);
             } else {
-                await addFavorite(plant);
+                addFavoritePlant(plant);
                 setFavorite(true);
             }
         } catch (error) {

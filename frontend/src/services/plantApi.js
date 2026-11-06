@@ -41,29 +41,3 @@ export function getRecommendations() {
 export function getPlant(slug) {
     return requestJson(`/api/plants/${encodeURIComponent(slug)}`);
 }
-
-// # ขอรายการโปรดทั้งหมด
-export function getFavorites() {
-    return requestJson("/api/favorites");
-}
-
-// # ตรวจสอบว่าต้นไม้ตาม slug เป็นรายการโปรดหรือไม่
-export function checkFavorite(slug) {
-    return requestJson(`/api/favorites/${encodeURIComponent(slug)}`);
-}
-
-// # เพิ่มต้นไม้ลงในรายการโปรด
-export function addFavorite(plant) {
-    return requestJson("/api/favorites", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(plant)
-    });
-}
-
-// # ลบต้นไม้ออกจากรายการโปรด
-export function removeFavorite(slug) {
-    return requestJson(`/api/favorites/${encodeURIComponent(slug)}`, {
-        method: "DELETE"
-    });
-}

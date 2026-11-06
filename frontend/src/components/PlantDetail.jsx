@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { addFavorite, checkFavorite, removeFavorite } from "../services/plantApi";
+import {
+    addFavoritePlant,
+    isFavoritePlant,
+    removeFavoritePlant
+} from "../utils/plantUtils";
 import PlantCare from "./PlantCare";
 
 // # แสดงข้อมูลต้นไม้ รายการโปรด และรายละเอียดวิธีดูแล
@@ -19,14 +23,12 @@ export default function PlantDetail({ plant }) {
         let active = true;
         setFavorite(null);
         setFavoriteError(false);
-        checkFavorite(plant.slug)
-            .then(result => {
-                if (active) setFavorite(result.favorite === true);
-            })
-            .catch(error => {
-                console.error("Check Favorite Error:", error);
-                if (active) setFavoriteError(true);
-            });
+        try {
+            if (active) setFavorite(isFavoritePlant(plant.slug));
+        } catch (error) {
+            console.error("Check Favorite Error:", error);
+            if (active) setFavoriteError(true);
+        }
 
         return () => {
             active = false;
@@ -38,10 +40,10 @@ export default function PlantDetail({ plant }) {
         setSaving(true);
         try {
             if (favorite) {
-                await removeFavorite(plant.slug);
+                removeFavoritePlant(plant.slug);
                 setFavorite(false);
             } else {
-                await addFavorite(plant);
+                addFavoritePlant(plant);
                 setFavorite(true);
             }
         } catch (error) {

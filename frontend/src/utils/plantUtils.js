@@ -24,6 +24,42 @@ export function insertionSort(plants) {
 export const SEARCH_STATE_KEY = "treflePlantSearchState";
 export const VIEW_HISTORY_KEY = "treflePlantViewHistory";
 export const VIEW_HISTORY_LIMIT = 50;
+export const FAVORITES_KEY = "trefleshop_favorites";
+
+// # อ่านรายการโปรดที่บันทึกไว้ใน localStorage และกรองข้อมูลที่ไม่มี slug
+export function readFavorites() {
+    try {
+        const plants = JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]");
+        return Array.isArray(plants)
+            ? plants.filter(plant => plant && typeof plant.slug === "string")
+            : [];
+    } catch (error) {
+        console.error("Unable to load favorite plants:", error);
+        return [];
+    }
+}
+
+// # บันทึกต้นไม้ลงรายการโปรดโดยไม่เกิดรายการซ้ำ
+export function addFavoritePlant(plant) {
+    if (!plant || typeof plant.slug !== "string") {
+        throw new TypeError("A plant with a slug is required for favorites.");
+    }
+
+    const favorites = readFavorites().filter(savedPlant => savedPlant.slug !== plant.slug);
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites, plant]));
+}
+
+// # ลบต้นไม้ออกจากรายการโปรดและส่งกลับรายการล่าสุด
+export function removeFavoritePlant(slug) {
+    const nextFavorites = readFavorites().filter(plant => plant.slug !== slug);
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(nextFavorites));
+    return nextFavorites;
+}
+
+// # ตรวจสอบว่าต้นไม้ถูกบันทึกเป็นรายการโปรดหรือไม่
+export function isFavoritePlant(slug) {
+    return readFavorites().some(plant => plant.slug === slug);
+}
 
 // # อ่านสถานะการค้นหาที่บันทึกไว้
 export function readSearchState() {
