@@ -18,7 +18,7 @@
 | Backend | Node.js และ Express |
 | External API | Trefle API |
 | Client storage | `sessionStorage` สำหรับสถานะการค้นหาและประวัติการดู |
-| DSA | Insertion Sort, key-based session storage และ Graph แบบ adjacency list |
+| DSA / โครงสร้างข้อมูล | Insertion Sort และ Graph แบบ adjacency list; มี BFS เป็นฟังก์ชันตรวจสอบ Graph |
 
 React ติดต่อ Express ผ่าน endpoint `/api/...` ส่วน Express เป็นตัวกลางติดต่อ Trefle API และอ่าน `TREFLE_TOKEN` จาก Environment Variable เพื่อไม่ให้ต้องใส่ token ไว้ในโค้ด Frontend
 
@@ -108,7 +108,7 @@ Express มี endpoint ดังนี้
 - จัดการกรณีเชื่อมต่อ API ไม่สำเร็จ, HTTP error และ JSON ไม่ถูกต้อง
 - รวมผลดอกไม้แนะนำจากหลายคำค้น และดึงรายละเอียดเพิ่มเติม
 - Cache รายการแนะนำในหน่วยความจำ 30 นาที
-- ตรวจสอบข้อมูล `slug` ก่อนเพิ่มรายการโปรด
+- การตรวจสอบ `slug` ก่อนเพิ่มรายการโปรดทำใน Frontend ที่ `frontend/src/utils/plantUtils.js` ไม่ใช่ Backend
 - มี Error Middleware สำหรับส่ง error กลับเป็น JSON
 
 ## 5. โครงสร้างโปรเจกต์
@@ -235,25 +235,25 @@ flowchart TD
 - `checkGraph()` ตรวจ node ที่ไปจาก Home ไม่ถึง (`orphans`) และ node ที่กลับไป Home ไม่ได้ (`deadEnds`)
 - Complexity ของ BFS คือ **O(V + E)** โดย V คือจำนวน node และ E คือจำนวน edge เนื่องจาก `canReach()` ใช้ตำแหน่ง `head` เพื่ออ่าน queue แบบคงที่ต่อ node แทนการ `shift()` สมาชิก Array
 
-> หมายเหตุ: จากโค้ดปัจจุบัน เมนูอ่านข้อมูลจาก `pageGraph` จริง ส่วน `canReach()` และ `checkGraph()` เป็นฟังก์ชันตรวจสอบ Graph ที่ประกาศไว้ แต่ยังไม่พบการเรียกใช้งานใน flow ของหน้าเว็บขณะตรวจสอบ ควรอธิบายแยกกันในคลิป ไม่ควรกล่าวว่า BFS เป็นตัวสร้างเมนู
+ > หมายเหตุ: จากโค้ดปัจจุบัน เมนูอ่านข้อมูลจาก `pageGraph` จริง ส่วน `canReach()` และ `checkGraph()` เป็นฟังก์ชันตรวจสอบ Graph ที่ประกาศไว้ แต่ยังไม่พบการเรียกใช้งานใน flow ของหน้าเว็บขณะตรวจสอบ ควรอธิบายแยกกันในคลิป ไม่ควรกล่าวว่า BFS เป็นตัวสร้างเมนู
 
 ## 8. DSA ที่ใช้กับข้อมูลจริง
 
 | DSA | ไฟล์/จุดที่ใช้ | ข้อมูลที่ประมวลผลและผลต่อ UX | Complexity |
 |---|---|---|---|
 | Insertion Sort | `frontend/src/utils/plantUtils.js` เรียกใช้ใน `frontend/src/pages/HomePage.jsx` | เรียงผลการค้นหาต้นไม้ตาม `common_name` ก่อนแสดงผล ทำให้ผู้ใช้ไล่ดูชื่อ A–Z ได้ง่าย | Best case O(n), Average/Worst case O(n²); ฟังก์ชันคัดลอก array ก่อนเรียงจึงมีพื้นที่เพิ่ม O(n) |
-| การจัดเก็บตาม key/slug | `frontend/src/utils/plantUtils.js` | เก็บ Favorites ใน `localStorage` ภายใต้ key `trefleshop_favorites` และค้นหาต้นไม้ด้วย `slug` | อ่าน/เขียนเป็น JSON ผ่าน Browser Storage; ค้นหา slug ใน array มีเวลา O(n) ต่อรายการนั้น |
-| Graph + BFS | `frontend/src/Graph.js` | Graph เก็บความสัมพันธ์ของหน้า; BFS ตรวจสอบการเข้าถึง node ใน Graph | BFS O(V + E) |
+| Browser Storage (ไม่จัดเป็น DSA ที่เขียนเอง) | `frontend/src/utils/plantUtils.js` | เก็บ Favorites ใน `localStorage` ภายใต้ key `trefleshop_favorites`; ใช้ `slug` ตรวจสอบรายการใน Array | การค้นหา slug ด้วย `.some()` และการกรองด้วย `.filter()` เป็น O(n) |
+| Graph + BFS | `frontend/src/Graph.js` | Graph เก็บความสัมพันธ์ของหน้าและใช้ `pageGraph` สร้างเมนู; `canReach()` / `checkGraph()` เป็นฟังก์ชันตรวจสอบการเข้าถึง | BFS O(V + E); ฟังก์ชัน BFS ยังไม่ถูกเรียกใน flow หน้าเว็บปัจจุบัน |
 
 ### เหตุผลที่เลือกใช้
 
 - **Insertion Sort:** เหมาะสำหรับอธิบายการเรียงข้อมูลในโปรเจกต์ และทำให้ผลค้นหามีลำดับ A–Z ก่อนแสดงแก่ผู้ใช้
-- **Key-based browser storage:** ใช้ key `trefleshop_favorites` เก็บ Favorites ในเบราว์เซอร์ของผู้ใช้และใช้ `slug` ระบุต้นไม้ภายในรายการ
-- **Graph:** แทนความสัมพันธ์การนำทางของแต่ละหน้าอย่างชัดเจน และสามารถตรวจสอบเส้นทางด้วย BFS ได้
+- **Browser Storage:** ใช้ `localStorage` เก็บ Favorites และใช้ `sessionStorage` เก็บสถานะค้นหา/ประวัติการดู ส่วนนี้เป็นกลไกจัดเก็บข้อมูลของเบราว์เซอร์ ไม่ใช่การ implement Hash Table เอง
+- **Graph:** แทนความสัมพันธ์การนำทางของแต่ละหน้าอย่างชัดเจน โดย `pageGraph` ถูกใช้สร้างเมนูจริง ส่วน BFS เป็นฟังก์ชันตรวจสอบเส้นทางที่มีอยู่ในโค้ด แต่ยังไม่ได้เชื่อมเข้ากับ flow ของผู้ใช้
 
 ## 9. ตารางส่วนร่วมของสมาชิก
 
-> ตารางด้านล่างยึดรายชื่อและบทบาทตาม README เดิม ต้องให้สมาชิกตรวจสอบและแก้ไขให้ตรงกับงานที่ทำจริง รวมถึงชื่อไฟล์/Component/Route/DSA และช่วงเวลาที่นำเสนอ ก่อนส่งงาน
+> คงรายชื่อและรหัสจาก README เดิมไว้ แต่ไม่สามารถยืนยันเจ้าของงานรายบุคคลจาก source code เพียงอย่างเดียวได้ ต้องตรวจสอบกับสมาชิกและ Git commit history แล้วแก้รายการชิ้นงาน/ช่วงเวลานำเสนอให้ตรงกับผู้ทำจริงก่อนส่ง
 
 | ชื่อ-สกุล | รหัสนักศึกษา | ชิ้นงานที่รับผิดชอบ (ไฟล์ / component / route / DSA) | ช่วงที่นำเสนอในคลิป |
 |---|---|---|---|
@@ -276,7 +276,64 @@ flowchart TD
 
 > ภาพจริงทั้ง Before และ After เป็นหลักฐานที่ใบงานกำหนด ตารางข้อความอย่างเดียวไม่ทดแทนภาพหน้าจอได้
 
-## 11. ตาราง useState
+
+## 11. Component Tree และการรับส่ง Props
+
+โครงสร้างด้านล่างสรุปเส้นทางหลักของ Component จากไฟล์ `main.jsx` และการส่ง props ที่ตรวจพบในโค้ดจริง
+
+```text
+App (main.jsx)
+└── BrowserRouter
+    └── Routes
+        ├── Route "/" 
+        │   └── SiteLayout
+        │       ├── SiteHeader
+        │       ├── HomePage
+        │       │   ├── PageContainer
+        │       │   ├── HomeHero
+        │       │   ├── RecommendationsSection
+        │       │   │   └── PlantCard (หลายรายการ)
+        │       │   └── PlantSearchSection
+        │       │       └── SearchResults
+        │       │           └── PlantCard (หลายรายการ)
+        │       └── SiteFooter
+        ├── Route "/favorites.html"
+        │   └── SiteLayout
+        │       └── FavoritesPage
+        │           └── PlantCard (หลายรายการ)
+        ├── Route "/history.html"
+        │   └── SiteLayout
+        │       └── HistoryPage
+        │           └── PlantHistoryCard (หลายรายการ)
+        └── Route "/plantDetail.html"
+            └── SiteLayout
+                └── PlantDetailPage
+                    └── PlantDetail
+                        └── PlantCare
+```
+
+### Props และ callback ที่สำคัญ
+
+| Parent → Child | Props / Callback | ทิศทางและหน้าที่ |
+|---|---|---|
+| `HomePage` → `HomeHero` | `query`, `searchViewActive`, `onQueryChange`, `onSearch`, `onClearSearch` | ส่งค่าคำค้นและสถานะลงไป; `HomeHero` เรียก callback เพื่อแจ้งการพิมพ์ ค้นหา และล้างคำค้นกลับไปยัง `HomePage` |
+| `HomePage` → `RecommendationsSection` | `plants`, `loading`, `error` | ส่งข้อมูลแนะนำและสถานะการโหลดให้ component ลูกแสดงผล |
+| `HomePage` → `PlantSearchSection` | `plants`, `loading`, `error`, `selectedSlug`, `query`, `onOpenDetails` | ส่งผลค้นหาและสถานะลงไป; callback `onOpenDetails` แจ้ง slug ที่เลือกกลับไปให้ `HomePage` |
+| `PlantSearchSection` → `SearchResults` → `PlantCard` | `plant`, `selected`, `onOpenDetails` | ส่งข้อมูลต้นไม้และสถานะการเลือกลงไป; `PlantCard` เรียก `onOpenDetails(slug)` เมื่อกดลิงก์รายละเอียด |
+| `FavoritesPage` → `PlantCard` | `plant`, `onRemove` | ส่งข้อมูลต้นไม้และ callback ลบ; `PlantCard` เรียก `onRemove(slug)` เมื่อผู้ใช้กด Remove |
+| `PlantDetailPage` → `PlantDetail` | `plant` | ส่งรายละเอียดต้นไม้ที่โหลดสำเร็จให้ component แสดงข้อมูล |
+| `PlantDetail` → `PlantCare` | `plant` | ส่งข้อมูลต้นไม้ต่อให้ส่วนแสดงรายละเอียดการดูแล |
+
+### เหตุผลในการวาง State
+
+- `HomePage` เป็นเจ้าของ state การค้นหา เพราะ `HomeHero` ต้องแสดง/แก้คำค้น ขณะที่ `PlantSearchSection` ต้องแสดงผลค้นหาและสถานะเดียวกัน จึงยก state ไว้ที่ parent แล้วส่ง props ลง child
+- `PlantDetailPage` เป็นเจ้าของ `plant`, `loading` และ `error` เพราะเป็นผู้เรียก API ตาม `slug` จาก URL แล้วส่งข้อมูลที่โหลดสำเร็จให้ `PlantDetail`
+- `FavoritesPage` และ `HistoryPage` เก็บรายการที่แสดงในแต่ละหน้า เพราะเป็นข้อมูลเฉพาะหน้าที่ผู้ใช้แก้ไขจากหน้านั้น
+- `PlantCard` และ `PlantDetail` เก็บสถานะปุ่ม Favorites ของตนเอง เพื่อให้การกด Save/Remove อัปเดต UI ของ component ที่เกี่ยวข้อง
+
+> แผนภาพนี้เป็น Component Tree เชิงโครงสร้างของเส้นทางหลัก ไม่ได้แสดง HTML element ทุกตัวหรือ component ย่อยด้านการตกแต่งทั้งหมด
+
+## 12. ตาราง useState
 
 ตารางนี้สรุป state ที่พบใน React components ตามโค้ดปัจจุบัน โดย state ใช้เก็บค่าที่เปลี่ยนระหว่างการใช้งานและมีผลต่อการ render ส่วนค่าที่คำนวณจาก props/state อื่นไม่จำเป็นต้องเก็บซ้ำเป็น state
 
@@ -307,7 +364,7 @@ flowchart TD
 
 > `activeSearchId` ใน `HomePage` และ `recordedSlug` ใน `PlantDetailPage` เป็น `useRef` ไม่ใช่ state จึงไม่อยู่ในตาราง useState
 
-## 12. ตาราง useEffect
+## 13. ตาราง useEffect
 
 | Component | Effect ทำอะไร | Dependency array | ทำงานตอนไหน |
 |---|---|---|---|
@@ -321,11 +378,11 @@ flowchart TD
 
 การกำหนด dependency ให้สอดคล้องกับค่าที่ effect ใช้ ช่วยให้โหลดข้อมูลเมื่อจำเป็น ส่วน cleanup flag ใน effect ที่เรียก API ช่วยป้องกันการอัปเดต state หลัง component ถูกถอดออกจากหน้า หรือเมื่อผลลัพธ์จากคำขอเก่ากลับมาทีหลัง
 
-## 13. สถานะ UX และการจัดการข้อผิดพลาด
+## 14. สถานะ UX และการจัดการข้อผิดพลาด
 
 | สถานะ | ตัวอย่างในโปรเจกต์ | การตอบสนองต่อผู้ใช้ |
 |---|---|---|
-| Loading | กำลังค้นหา, โหลดคำแนะนำ, รายการโปรด หรือรายละเอียด | แสดง `LoadingState` ระหว่างรอข้อมูล |
-| Empty | ยังไม่ค้นหา, ไม่พบต้นไม้, ไม่มีรายการโปรด หรือไม่มีประวัติ | แสดง `EmptyState` พร้อมข้อความแนะนำ |
-| Error | คำขอค้นหา/คำแนะนำ/รายการโปรด/รายละเอียดล้มเหลว | แสดง `ErrorState` หรือข้อความ error ใน component |
-| Success / มีข้อมูล | API ส่งข้อมูลกลับสำเร็จ | แสดงการ์ดต้นไม้ รายละเอียด หรือรายการที่บันทึกไว้ |
+| Loading | Search และ Recommendations ในหน้า Home; Plant Detail | แสดง `LoadingState` ระหว่างรอข้อมูล |
+| Empty | Search ที่ยังไม่เริ่ม/ไม่พบผล, Favorites ว่าง, History ว่าง, Recommendations ว่าง | แสดง `EmptyState` พร้อมข้อความแนะนำ |
+| Error | Search, Recommendations และ Plant Detail | แสดง `ErrorState`; Favorites/History อ่าน Storage ผ่าน utility ที่จัดการ exception และคืนค่าเริ่มต้น แต่ไม่ได้มี Loading/Error UI แบบเดียวกับหน้า API |
+| Success / มีข้อมูล | API ส่งข้อมูลกลับสำเร็จ หรือมีข้อมูลใน Browser Storage | แสดงการ์ดต้นไม้ รายละเอียด หรือรายการที่บันทึกไว้ |
