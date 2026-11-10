@@ -21,237 +21,7 @@
 | DSA / โครงสร้างข้อมูล | Insertion Sort และ Graph แบบ adjacency list; มี BFS เป็นฟังก์ชันตรวจสอบ Graph |
 
 React ติดต่อ Express ผ่าน endpoint `/api/...` ส่วน Express เป็นตัวกลางติดต่อ Trefle API และอ่าน `TREFLE_TOKEN` จาก Environment Variable เพื่อไม่ให้ต้องใส่ token ไว้ในโค้ด Frontend
-
-### การจัดเก็บข้อมูล
-
-| ข้อมูล | ที่จัดเก็บตามโค้ดปัจจุบัน | หมายเหตุ |
-|---|---|---|
-| รายการโปรด | `localStorage` | เก็บต้นไม้ภายใต้ key `trefleshop_favorites`; เพิ่ม ลบ และคงข้อมูลเมื่อรีเฟรช |
-| คำค้นและผลการค้นหา | `sessionStorage` | คงอยู่ภายใน session ของแท็บเบราว์เซอร์ |
-| ประวัติการเปิดดู | `sessionStorage` | บันทึก slug ชื่อ และเวลาที่เปิดดู; ล้างได้จากหน้า Viewing History |
-| รายการแนะนำ | หน่วยความจำ Express | Cache ภายในบริการเป็นเวลา 30 นาที |
-
-> **ขอบเขต Favorites:** ข้อมูลอยู่ในเบราว์เซอร์ของผู้ใช้ ใช้ชื่อต้นฉบับโดยไม่ซิงก์ข้ามเครื่องหรือเบราว์เซอร์ และอาจหายเมื่อผู้ใช้ล้างข้อมูลเว็บไซต์
-
-## 3. การติดตั้งและเริ่มใช้งาน
-
-### สิ่งที่ต้องมี
-
-- Node.js และ npm
-- Trefle API token
-
-### ขั้นตอนติดตั้ง
-
-1. Clone repository และเปลี่ยนเข้าโฟลเดอร์โปรเจกต์
-
-   ```bash
-   git clone https://github.com/kumlaikaewnatcha-web/trefle-plant-shop.git
-   cd trefle-plant-shop
-   ```
-
-2. เปลี่ยนไปยัง branch ที่ใช้พัฒนา
-
-   ```bash
-   git checkout feature/frontend-ux
-   ```
-
-3. ติดตั้ง dependencies
-
-   ```bash
-   npm install
-   ```
-
-4. สร้างไฟล์ `.env` ที่ root ของโปรเจกต์ และกำหนด token
-
-   ```env
-   TREFLE_TOKEN=ใส่_TREFLE_API_TOKEN_ของคุณ
-   ```
-
-5. เริ่ม Frontend และ Express พร้อมกันในโหมดพัฒนา
-
-   ```bash
-   npm run dev
-   ```
-
-   Vite จะให้บริการ Frontend และ proxy คำขอ `/api` ไปยัง Express ที่ `http://localhost:3000`
-
-6. เปิด URL ที่ Vite แสดงใน Terminal (โดยทั่วไปคือ `http://localhost:5173`)
-
-### คำสั่งที่ใช้
-
-| คำสั่ง | หน้าที่ |
-|---|---|
-| `npm install` | ติดตั้ง dependencies |
-| `npm run dev` | เริ่ม Vite และ Express พร้อมกัน |
-| `npm run build` | build Frontend ไปยังโฟลเดอร์ `dist/` |
-| `npm start` | เริ่ม Express server |
-| `npm run preview` | เปิดดูผล build ด้วย Vite Preview |
-
-> อย่า commit ไฟล์ `.env` หรือเปิดเผย `TREFLE_TOKEN` ในโค้ดสาธารณะ หาก deploy ให้กำหนด token ผ่าน Environment Variables ของแพลตฟอร์ม
-
-## 4. API Endpoints
-
-Express มี endpoint ดังนี้
-
-| Method | Endpoint | หน้าที่ |
-|---|---|---|
-| `GET` | `/api/plants/search?q=rose` | ค้นหาต้นไม้จากคำค้น `q`; ถ้าไม่มีคำค้นจะตอบสถานะ `400` |
-| `GET` | `/api/plants/recommendations` | ส่งรายการดอกไม้แนะนำ โดยรวบรวมผลจากหลายคำค้นและจัดอันดับความครบถ้วนของข้อมูลดูแล |
-| `GET` | `/api/plants/:slug` | ดึงรายละเอียดต้นไม้จาก slug |
-| `GET` | `/api/test` | ตรวจสอบว่า Express API ทำงานอยู่ |
-
-### การทำงานของ Backend
-
-- ตรวจสอบคำค้นก่อนเรียก Trefle API
-- อ่าน API token จาก `process.env.TREFLE_TOKEN`
-- กำหนด timeout ให้คำขอ Trefle API
-- จัดการกรณีเชื่อมต่อ API ไม่สำเร็จ, HTTP error และ JSON ไม่ถูกต้อง
-- รวมผลดอกไม้แนะนำจากหลายคำค้น และดึงรายละเอียดเพิ่มเติม
-- Cache รายการแนะนำในหน่วยความจำ 30 นาที
-- การตรวจสอบ `slug` ก่อนเพิ่มรายการโปรดทำใน Frontend ที่ `frontend/src/utils/plantUtils.js` ไม่ใช่ Backend
-- มี Error Middleware สำหรับส่ง error กลับเป็น JSON
-
-## 5. โครงสร้างโปรเจกต์
-
-```text
-.
-├── api/
-│   └── index.js                    # adapter สำหรับส่งออก Express app
-├── backend/
-│   ├── index.js                    # สร้าง Express app และ Error Middleware
-│   ├── routes/
-│   │   └── plantRoutes.js          # endpoints เกี่ยวกับต้นไม้
-│   └── services/
-│       └── trefleService.js        # ติดต่อ Trefle API และ cache คำแนะนำ
-├── frontend/
-│   ├── index.html
-│   ├── public/
-│   │   └── Cows_grazing_on_green_hills_1080p_20261024124512.mp4
-│   ├── vite.config.js
-│   └── src/
-│       ├── Graph.js                # adjacency list และ BFS
-│       ├── main.jsx                # React Router และจุดเริ่มต้นแอป
-│       ├── components/
-│       │   ├── DetailPanel.jsx
-│       │   ├── Feedback.jsx
-│       │   ├── HomeHero.jsx
-│       │   ├── PageContainer.jsx
-│       │   ├── PlantCard.jsx
-│       │   ├── PlantCare.jsx
-│       │   ├── PlantDetail.jsx
-│       │   ├── PlantGrid.jsx
-│       │   ├── PlantHistoryCard.jsx
-│       │   ├── PlantSearchSection.jsx
-│       │   ├── RecommendationsSection.jsx
-│       │   ├── ResultSection.jsx
-│       │   └── SiteLayout.jsx
-│       ├── pages/
-│       │   ├── HomePage.jsx
-│       │   ├── PlantDetailPage.jsx
-│       │   ├── FavoritesPage.jsx
-│       │   └── HistoryPage.jsx
-│       ├── services/
-│       │   └── plantApi.js
-│       ├── utils/
-│       │   ├── plantCare.js
-│       │   └── plantUtils.js
-│       └── styles.css
-├── .gitignore
-├── package.json
-├── package-lock.json
-├── README.md
-└── vercel.json
-```
-
-## 6. User Flow และการปรับปรุง UX
-
-### User Flow ปัจจุบัน
-
-```mermaid
-flowchart TD
-    A[เปิดหน้า Home] --> B[ดูดอกไม้แนะนำ หรือพิมพ์ค้นหา]
-    B --> C[ดูผลการค้นหาที่เรียง A-Z]
-    C --> D[เลือก View details]
-    D --> E[ดูรายละเอียดและข้อมูลการดูแล]
-    E --> F[บันทึกหรือเอาออกจาก Favorites]
-    F --> G[เปิดหน้า Favorites เพื่อดูรายการที่บันทึก]
-    E --> H[ระบบบันทึกประวัติการเปิดดู]
-    H --> I[เปิดหน้า Viewing History]
-```
-
-### การปรับปรุง Flow ในเวอร์ชันนี้
-
-1. **เริ่มค้นหาหรือเลือกจากรายการแนะนำได้ทันที:** หน้า Home แสดงดอกไม้แนะนำ และมีช่องค้นหาในส่วน Hero
-2. **เข้าถึงรายละเอียดจากการ์ด:** ผู้ใช้กด `View details` จากการ์ดเพื่อเปิดหน้ารายละเอียดได้โดยตรง
-3. **ดูข้อมูลในหน้าเดียว:** หน้ารายละเอียดแสดงชื่อ รูปภาพ สถานะ Favorites และข้อมูลการดูแลที่มีจาก API
-4. **เก็บต้นไม้ที่สนใจ:** ผู้ใช้กด Save/Remove จากการ์ดหรือหน้ารายละเอียดได้
-5. **ย้อนดูข้อมูลเดิม:** มีหน้า Favorites และ Viewing History ช่วยให้ผู้ใช้กลับไปยังต้นไม้ที่สนใจโดยไม่ต้องเริ่มค้นหาใหม่
-6. **คงผลค้นหาใน session:** คำค้นและผลการค้นหาถูกเก็บใน `sessionStorage` เพื่อช่วยรักษาสถานะระหว่างการเปลี่ยนหน้า
-
-## 7. Graph.js และการนำทางระหว่างหน้า
-
-ไฟล์ `frontend/src/Graph.js` เก็บ Graph แบบ **adjacency list** โดย node คือหน้าเว็บ และ edge คือความสัมพันธ์/ลิงก์ที่พาผู้ใช้จากหน้าหนึ่งไปอีกหน้าหนึ่ง
-
-### Node และเส้นเชื่อม
-
-| Node | URL | หน้าที่เชื่อมไปได้ตาม `pageGraph` |
-|---|---|---|
-| `home` | `/` | history, favorites, detail |
-| `favorites` | `/favorites.html` | home, history, detail |
-| `history` | `/history.html` | home, favorites, detail |
-| `detail` | `/plantDetail.html` | home, history, favorites |
-
-แผนภาพการเชื่อมโยงหน้า (แสดงเฉพาะ edge ระหว่างคนละหน้า ซึ่งตรงกับข้อมูลใน `pageGraph`; แต่ละ node ไม่มี self-edge):
-
-```mermaid
-flowchart TD
-    H[Home<br/>/] --> F[Favorites<br/>/favorites.html]
-    H --> V[Viewing History<br/>/history.html]
-    H --> D[Plant Detail<br/>/plantDetail.html]
-    F --> H
-    F --> V
-    F --> D
-    V --> H
-    V --> F
-    V --> D
-    D --> H
-    D --> F
-    D --> V
-```
-
-### การนำ Graph ไปใช้สร้างเมนู
-
-1. `pageGraph` ระบุ node และ edge ของหน้าเว็บ
-2. `pagePaths` จับคู่ node กับ URL ที่ React Router ใช้
-3. `pageLabels` เก็บชื่อหน้าและ `menuLabel` สำหรับรายการที่ต้องแสดงในเมนู
-4. `SiteHeader` ใช้ `useLocation()` ตรวจ URL ปัจจุบัน แล้วหา node ปัจจุบันจาก `pagePaths`
-5. `SiteHeader` อ่าน edge ของ node ปัจจุบันจาก `pageGraph` และกรองปลายทางที่มี `menuLabel`
-6. ใช้ `map()` สร้าง `<Link>` จากข้อมูล Graph และ `pagePaths` โดยไม่เขียนรายการเมนูซ้ำแบบตายตัวใน JSX
-7. หน้า Plant Detail เข้าถึงได้จากลิงก์ `View details` บนการ์ดต้นไม้
-
-### BFS ใน Graph.js
-
-- `canReach(start, end, graph)` ใช้ Breadth-First Search (BFS) ตรวจว่ามีเส้นทางจาก node เริ่มต้นไปยัง node ปลายทางหรือไม่
-- `checkGraph()` ตรวจ node ที่ไปจาก Home ไม่ถึง (`orphans`) และ node ที่กลับไป Home ไม่ได้ (`deadEnds`)
-- Complexity ของ BFS คือ **O(V + E)** โดย V คือจำนวน node และ E คือจำนวน edge เนื่องจาก `canReach()` ใช้ตำแหน่ง `head` เพื่ออ่าน queue แบบคงที่ต่อ node แทนการ `shift()` สมาชิก Array
-
- > หมายเหตุ: จากโค้ดปัจจุบัน เมนูอ่านข้อมูลจาก `pageGraph` จริง ส่วน `canReach()` และ `checkGraph()` เป็นฟังก์ชันตรวจสอบ Graph ที่ประกาศไว้ แต่ยังไม่พบการเรียกใช้งานใน flow ของหน้าเว็บขณะตรวจสอบ ควรอธิบายแยกกันในคลิป ไม่ควรกล่าวว่า BFS เป็นตัวสร้างเมนู
-
-## 8. DSA ที่ใช้กับข้อมูลจริง
-
-| DSA | ไฟล์/จุดที่ใช้ | ข้อมูลที่ประมวลผลและผลต่อ UX | Complexity |
-|---|---|---|---|
-| Insertion Sort | `frontend/src/utils/plantUtils.js` เรียกใช้ใน `frontend/src/pages/HomePage.jsx` | เรียงผลการค้นหาต้นไม้ตาม `common_name` ก่อนแสดงผล ทำให้ผู้ใช้ไล่ดูชื่อ A–Z ได้ง่าย | Best case O(n), Average/Worst case O(n²); ฟังก์ชันคัดลอก array ก่อนเรียงจึงมีพื้นที่เพิ่ม O(n) |
-| Browser Storage (ไม่จัดเป็น DSA ที่เขียนเอง) | `frontend/src/utils/plantUtils.js` | เก็บ Favorites ใน `localStorage` ภายใต้ key `trefleshop_favorites`; ใช้ `slug` ตรวจสอบรายการใน Array | การค้นหา slug ด้วย `.some()` และการกรองด้วย `.filter()` เป็น O(n) |
-| Graph + BFS | `frontend/src/Graph.js` | Graph เก็บความสัมพันธ์ของหน้าและใช้ `pageGraph` สร้างเมนู; `canReach()` / `checkGraph()` เป็นฟังก์ชันตรวจสอบการเข้าถึง | BFS O(V + E); ฟังก์ชัน BFS ยังไม่ถูกเรียกใน flow หน้าเว็บปัจจุบัน |
-
-### เหตุผลที่เลือกใช้
-
-- **Insertion Sort:** เหมาะสำหรับอธิบายการเรียงข้อมูลในโปรเจกต์ และทำให้ผลค้นหามีลำดับ A–Z ก่อนแสดงแก่ผู้ใช้
-- **Browser Storage:** ใช้ `localStorage` เก็บ Favorites และใช้ `sessionStorage` เก็บสถานะค้นหา/ประวัติการดู ส่วนนี้เป็นกลไกจัดเก็บข้อมูลของเบราว์เซอร์ ไม่ใช่การ implement Hash Table เอง
-- **Graph:** แทนความสัมพันธ์การนำทางของแต่ละหน้าอย่างชัดเจน โดย `pageGraph` ถูกใช้สร้างเมนูจริง ส่วน BFS เป็นฟังก์ชันตรวจสอบเส้นทางที่มีอยู่ในโค้ด แต่ยังไม่ได้เชื่อมเข้ากับ flow ของผู้ใช้
-
-## 9. ตารางส่วนร่วมของสมาชิก
+## 3. ตารางส่วนร่วมของสมาชิก
 
 | ชื่อ-สกุล | รหัสนักศึกษา | ชิ้นงานที่รับผิดชอบ (ไฟล์ / component / route / DSA) | ช่วงที่นำเสนอในคลิป |
 |---|---|---|---|
@@ -261,21 +31,17 @@ flowchart TD
 
 **สำคัญ:** ใบงานให้ระบุชิ้นงานที่ตรวจสอบได้แทนการแบ่งเป็นเปอร์เซ็นต์ และข้อมูลควรสอดคล้องกับ commit history ของ GitHub สมาชิกทุกคนควรตรวจสอบบัญชีผู้เขียน commit และประวัติการทำงานของตนเองก่อนส่ง
 
-## 10. ตารางข้อแนะนำจากงานแรก → สิ่งที่แก้
+## 4. ตารางข้อแนะนำจากงานแรก → สิ่งที่แก้
 
 > ข้อแนะนำในคอลัมน์แรกด้านล่างเป็นข้อความสรุปจาก README เดิม โปรดตรวจเทียบกับข้อเสนอแนะจริงที่ได้รับจากงานแรก และแก้ถ้อยคำให้ตรงกับหลักฐาน/คำแนะนำของอาจารย์
 
 | ข้อแนะนำจากงานแรก | สิ่งที่แก้ในงานนี้ | หลักฐาน Before / After ที่ต้องแนบ |
 |---|---|---|
 | ต้องการข้อมูลรายละเอียดต้นไม้มากขึ้น | เพิ่มหน้า Plant Detail และส่วนข้อมูลการดูแลใน `frontend/src/components/PlantDetail.jsx` และ `PlantCare.jsx` | ![Before - Plant Detail](docs/before-detail.jpg)<br>![After - Plant Detail](docs/after-detail.png)<br>![After - Plant Detail 01](docs/after-detail.01.png) |
-| ต้องการปรับปรุงหน้าตาและการจัดวาง | ปรับ Hero, การ์ดต้นไม้, layout และ CSS ใน React | ภาพหน้าเว็บก่อนปรับและหลังปรับ |
-| ต้องการให้การจัดการรายการโปรดสะดวกขึ้น | เพิ่ม/ลบรายการโปรดจากการ์ดและหน้ารายละเอียด พร้อมเชื่อม API | ภาพขั้นตอนการบันทึก/นำออก และผลที่แสดงต่อผู้ใช้ |
-| ต้องการให้กลับมาดูต้นไม้ที่เคยเปิดได้ | เพิ่ม Viewing History และปุ่ม Clear History โดยใช้ `sessionStorage` | ภาพหน้าประวัติการดูและตัวอย่างหลังล้างประวัติ |
-
 > ภาพจริงทั้ง Before และ After เป็นหลักฐานที่ใบงานกำหนด ตารางข้อความอย่างเดียวไม่ทดแทนภาพหน้าจอได้
 
 
-## 11. Component Tree และการรับส่ง Props
+## 5. Component Tree และการรับส่ง Props
 
 โครงสร้างด้านล่างสรุปเส้นทางหลักของ Component จากไฟล์ `main.jsx` และการส่ง props ที่ตรวจพบในโค้ดจริง
 
@@ -331,7 +97,7 @@ App (main.jsx)
 
 > แผนภาพนี้เป็น Component Tree เชิงโครงสร้างของเส้นทางหลัก ไม่ได้แสดง HTML element ทุกตัวหรือ component ย่อยด้านการตกแต่งทั้งหมด
 
-## 12. ตาราง useState
+## 6. ตาราง useState
 
 ตารางนี้สรุป state ที่พบใน React components ตามโค้ดปัจจุบัน โดย state ใช้เก็บค่าที่เปลี่ยนระหว่างการใช้งานและมีผลต่อการ render ส่วนค่าที่คำนวณจาก props/state อื่นไม่จำเป็นต้องเก็บซ้ำเป็น state
 
@@ -362,7 +128,7 @@ App (main.jsx)
 
 > `activeSearchId` ใน `HomePage` และ `recordedSlug` ใน `PlantDetailPage` เป็น `useRef` ไม่ใช่ state จึงไม่อยู่ในตาราง useState
 
-## 13. ตาราง useEffect
+## 7. ตาราง useEffect
 
 | Component | Effect ทำอะไร | Dependency array | ทำงานตอนไหน |
 |---|---|---|---|
@@ -376,7 +142,7 @@ App (main.jsx)
 
 การกำหนด dependency ให้สอดคล้องกับค่าที่ effect ใช้ ช่วยให้โหลดข้อมูลเมื่อจำเป็น ส่วน cleanup flag ใน effect ที่เรียก API ช่วยป้องกันการอัปเดต state หลัง component ถูกถอดออกจากหน้า หรือเมื่อผลลัพธ์จากคำขอเก่ากลับมาทีหลัง
 
-## 14. สถานะ UX และการจัดการข้อผิดพลาด
+## 8. สถานะ UX และการจัดการข้อผิดพลาด
 
 | สถานะ | ตัวอย่างในโปรเจกต์ | การตอบสนองต่อผู้ใช้ |
 |---|---|---|
@@ -384,3 +150,233 @@ App (main.jsx)
 | Empty | Search ที่ยังไม่เริ่ม/ไม่พบผล, Favorites ว่าง, History ว่าง, Recommendations ว่าง | แสดง `EmptyState` พร้อมข้อความแนะนำ |
 | Error | Search, Recommendations และ Plant Detail | แสดง `ErrorState`; Favorites/History อ่าน Storage ผ่าน utility ที่จัดการ exception และคืนค่าเริ่มต้น แต่ไม่ได้มี Loading/Error UI แบบเดียวกับหน้า API |
 | Success / มีข้อมูล | API ส่งข้อมูลกลับสำเร็จ หรือมีข้อมูลใน Browser Storage | แสดงการ์ดต้นไม้ รายละเอียด หรือรายการที่บันทึกไว้ |
+
+### การจัดเก็บข้อมูล
+
+| ข้อมูล | ที่จัดเก็บตามโค้ดปัจจุบัน | หมายเหตุ |
+|---|---|---|
+| รายการโปรด | `localStorage` | เก็บต้นไม้ภายใต้ key `trefleshop_favorites`; เพิ่ม ลบ และคงข้อมูลเมื่อรีเฟรช |
+| คำค้นและผลการค้นหา | `sessionStorage` | คงอยู่ภายใน session ของแท็บเบราว์เซอร์ |
+| ประวัติการเปิดดู | `sessionStorage` | บันทึก slug ชื่อ และเวลาที่เปิดดู; ล้างได้จากหน้า Viewing History |
+| รายการแนะนำ | หน่วยความจำ Express | Cache ภายในบริการเป็นเวลา 30 นาที |
+
+> **ขอบเขต Favorites:** ข้อมูลอยู่ในเบราว์เซอร์ของผู้ใช้ ใช้ชื่อต้นฉบับโดยไม่ซิงก์ข้ามเครื่องหรือเบราว์เซอร์ และอาจหายเมื่อผู้ใช้ล้างข้อมูลเว็บไซต์
+
+## 9. การติดตั้งและเริ่มใช้งาน
+
+### สิ่งที่ต้องมี
+
+- Node.js และ npm
+- Trefle API token
+
+### ขั้นตอนติดตั้ง
+
+1. Clone repository และเปลี่ยนเข้าโฟลเดอร์โปรเจกต์
+
+   ```bash
+   git clone https://github.com/kumlaikaewnatcha-web/trefle-plant-shop.git
+   cd trefle-plant-shop
+   ```
+
+2. เปลี่ยนไปยัง branch ที่ใช้พัฒนา
+
+   ```bash
+   git checkout feature/frontend-ux
+   ```
+
+3. ติดตั้ง dependencies
+
+   ```bash
+   npm install
+   ```
+
+4. สร้างไฟล์ `.env` ที่ root ของโปรเจกต์ และกำหนด token
+
+   ```env
+   TREFLE_TOKEN=ใส่_TREFLE_API_TOKEN_ของคุณ
+   ```
+
+5. เริ่ม Frontend และ Express พร้อมกันในโหมดพัฒนา
+
+   ```bash
+   npm run dev
+   ```
+
+   Vite จะให้บริการ Frontend และ proxy คำขอ `/api` ไปยัง Express ที่ `http://localhost:3000`
+
+6. เปิด URL ที่ Vite แสดงใน Terminal (โดยทั่วไปคือ `http://localhost:5173`)
+
+### คำสั่งที่ใช้
+
+| คำสั่ง | หน้าที่ |
+|---|---|
+| `npm install` | ติดตั้ง dependencies |
+| `npm run dev` | เริ่ม Vite และ Express พร้อมกัน |
+| `npm run build` | build Frontend ไปยังโฟลเดอร์ `dist/` |
+| `npm start` | เริ่ม Express server |
+| `npm run preview` | เปิดดูผล build ด้วย Vite Preview |
+
+> อย่า commit ไฟล์ `.env` หรือเปิดเผย `TREFLE_TOKEN` ในโค้ดสาธารณะ หาก deploy ให้กำหนด token ผ่าน Environment Variables ของแพลตฟอร์ม
+
+## 10. API Endpoints
+
+Express มี endpoint ดังนี้
+
+| Method | Endpoint | หน้าที่ |
+|---|---|---|
+| `GET` | `/api/plants/search?q=rose` | ค้นหาต้นไม้จากคำค้น `q`; ถ้าไม่มีคำค้นจะตอบสถานะ `400` |
+| `GET` | `/api/plants/recommendations` | ส่งรายการดอกไม้แนะนำ โดยรวบรวมผลจากหลายคำค้นและจัดอันดับความครบถ้วนของข้อมูลดูแล |
+| `GET` | `/api/plants/:slug` | ดึงรายละเอียดต้นไม้จาก slug |
+| `GET` | `/api/test` | ตรวจสอบว่า Express API ทำงานอยู่ |
+
+### การทำงานของ Backend
+
+- ตรวจสอบคำค้นก่อนเรียก Trefle API
+- อ่าน API token จาก `process.env.TREFLE_TOKEN`
+- กำหนด timeout ให้คำขอ Trefle API
+- จัดการกรณีเชื่อมต่อ API ไม่สำเร็จ, HTTP error และ JSON ไม่ถูกต้อง
+- รวมผลดอกไม้แนะนำจากหลายคำค้น และดึงรายละเอียดเพิ่มเติม
+- Cache รายการแนะนำในหน่วยความจำ 30 นาที
+- การตรวจสอบ `slug` ก่อนเพิ่มรายการโปรดทำใน Frontend ที่ `frontend/src/utils/plantUtils.js` ไม่ใช่ Backend
+- มี Error Middleware สำหรับส่ง error กลับเป็น JSON
+
+## 11. โครงสร้างโปรเจกต์
+
+```text
+.
+├── api/
+│   └── index.js                    # adapter สำหรับส่งออก Express app
+├── backend/
+│   ├── index.js                    # สร้าง Express app และ Error Middleware
+│   ├── routes/
+│   │   └── plantRoutes.js          # endpoints เกี่ยวกับต้นไม้
+│   └── services/
+│       └── trefleService.js        # ติดต่อ Trefle API และ cache คำแนะนำ
+├── frontend/
+│   ├── index.html
+│   ├── public/
+│   │   └── Cows_grazing_on_green_hills_1080p_20261024124512.mp4
+│   ├── vite.config.js
+│   └── src/
+│       ├── Graph.js                # adjacency list และ BFS
+│       ├── main.jsx                # React Router และจุดเริ่มต้นแอป
+│       ├── components/
+│       │   ├── DetailPanel.jsx
+│       │   ├── Feedback.jsx
+│       │   ├── HomeHero.jsx
+│       │   ├── PageContainer.jsx
+│       │   ├── PlantCard.jsx
+│       │   ├── PlantCare.jsx
+│       │   ├── PlantDetail.jsx
+│       │   ├── PlantGrid.jsx
+│       │   ├── PlantHistoryCard.jsx
+│       │   ├── PlantSearchSection.jsx
+│       │   ├── RecommendationsSection.jsx
+│       │   ├── ResultSection.jsx
+│       │   └── SiteLayout.jsx
+│       ├── pages/
+│       │   ├── HomePage.jsx
+│       │   ├── PlantDetailPage.jsx
+│       │   ├── FavoritesPage.jsx
+│       │   └── HistoryPage.jsx
+│       ├── services/
+│       │   └── plantApi.js
+│       ├── utils/
+│       │   ├── plantCare.js
+│       │   └── plantUtils.js
+│       └── styles.css
+├── .gitignore
+├── package.json
+├── package-lock.json
+├── README.md
+└── vercel.json
+```
+
+## 12. User Flow และการปรับปรุง UX
+
+### User Flow ปัจจุบัน
+
+```mermaid
+flowchart TD
+    A[เปิดหน้า Home] --> B[ดูดอกไม้แนะนำ หรือพิมพ์ค้นหา]
+    B --> C[ดูผลการค้นหาที่เรียง A-Z]
+    C --> D[เลือก View details]
+    D --> E[ดูรายละเอียดและข้อมูลการดูแล]
+    E --> F[บันทึกหรือเอาออกจาก Favorites]
+    F --> G[เปิดหน้า Favorites เพื่อดูรายการที่บันทึก]
+    E --> H[ระบบบันทึกประวัติการเปิดดู]
+    H --> I[เปิดหน้า Viewing History]
+```
+
+### การปรับปรุง Flow ในเวอร์ชันนี้
+
+1. **เริ่มค้นหาหรือเลือกจากรายการแนะนำได้ทันที:** หน้า Home แสดงดอกไม้แนะนำ และมีช่องค้นหาในส่วน Hero
+2. **เข้าถึงรายละเอียดจากการ์ด:** ผู้ใช้กด `View details` จากการ์ดเพื่อเปิดหน้ารายละเอียดได้โดยตรง
+3. **ดูข้อมูลในหน้าเดียว:** หน้ารายละเอียดแสดงชื่อ รูปภาพ สถานะ Favorites และข้อมูลการดูแลที่มีจาก API
+4. **เก็บต้นไม้ที่สนใจ:** ผู้ใช้กด Save/Remove จากการ์ดหรือหน้ารายละเอียดได้
+5. **ย้อนดูข้อมูลเดิม:** มีหน้า Favorites และ Viewing History ช่วยให้ผู้ใช้กลับไปยังต้นไม้ที่สนใจโดยไม่ต้องเริ่มค้นหาใหม่
+6. **คงผลค้นหาใน session:** คำค้นและผลการค้นหาถูกเก็บใน `sessionStorage` เพื่อช่วยรักษาสถานะระหว่างการเปลี่ยนหน้า
+
+## 13. Graph.js และการนำทางระหว่างหน้า
+
+ไฟล์ `frontend/src/Graph.js` เก็บ Graph แบบ **adjacency list** โดย node คือหน้าเว็บ และ edge คือความสัมพันธ์/ลิงก์ที่พาผู้ใช้จากหน้าหนึ่งไปอีกหน้าหนึ่ง
+
+### Node และเส้นเชื่อม
+
+| Node | URL | หน้าที่เชื่อมไปได้ตาม `pageGraph` |
+|---|---|---|
+| `home` | `/` | history, favorites, detail |
+| `favorites` | `/favorites.html` | home, history, detail |
+| `history` | `/history.html` | home, favorites, detail |
+| `detail` | `/plantDetail.html` | home, history, favorites |
+
+แผนภาพการเชื่อมโยงหน้า (แสดงเฉพาะ edge ระหว่างคนละหน้า ซึ่งตรงกับข้อมูลใน `pageGraph`; แต่ละ node ไม่มี self-edge):
+
+```mermaid
+flowchart TD
+    H[Home<br/>/] --> F[Favorites<br/>/favorites.html]
+    H --> V[Viewing History<br/>/history.html]
+    H --> D[Plant Detail<br/>/plantDetail.html]
+    F --> H
+    F --> V
+    F --> D
+    V --> H
+    V --> F
+    V --> D
+    D --> H
+    D --> F
+    D --> V
+```
+
+### การนำ Graph ไปใช้สร้างเมนู
+
+1. `pageGraph` ระบุ node และ edge ของหน้าเว็บ
+2. `pagePaths` จับคู่ node กับ URL ที่ React Router ใช้
+3. `pageLabels` เก็บชื่อหน้าและ `menuLabel` สำหรับรายการที่ต้องแสดงในเมนู
+4. `SiteHeader` ใช้ `useLocation()` ตรวจ URL ปัจจุบัน แล้วหา node ปัจจุบันจาก `pagePaths`
+5. `SiteHeader` อ่าน edge ของ node ปัจจุบันจาก `pageGraph` และกรองปลายทางที่มี `menuLabel`
+6. ใช้ `map()` สร้าง `<Link>` จากข้อมูล Graph และ `pagePaths` โดยไม่เขียนรายการเมนูซ้ำแบบตายตัวใน JSX
+7. หน้า Plant Detail เข้าถึงได้จากลิงก์ `View details` บนการ์ดต้นไม้
+
+### BFS ใน Graph.js
+
+- `canReach(start, end, graph)` ใช้ Breadth-First Search (BFS) ตรวจว่ามีเส้นทางจาก node เริ่มต้นไปยัง node ปลายทางหรือไม่
+- `checkGraph()` ตรวจ node ที่ไปจาก Home ไม่ถึง (`orphans`) และ node ที่กลับไป Home ไม่ได้ (`deadEnds`)
+- Complexity ของ BFS คือ **O(V + E)** โดย V คือจำนวน node และ E คือจำนวน edge เนื่องจาก `canReach()` ใช้ตำแหน่ง `head` เพื่ออ่าน queue แบบคงที่ต่อ node แทนการ `shift()` สมาชิก Array
+
+ > หมายเหตุ: จากโค้ดปัจจุบัน เมนูอ่านข้อมูลจาก `pageGraph` จริง ส่วน `canReach()` และ `checkGraph()` เป็นฟังก์ชันตรวจสอบ Graph ที่ประกาศไว้ แต่ยังไม่พบการเรียกใช้งานใน flow ของหน้าเว็บขณะตรวจสอบ ควรอธิบายแยกกันในคลิป ไม่ควรกล่าวว่า BFS เป็นตัวสร้างเมนู
+
+## 14. DSA ที่ใช้กับข้อมูลจริง
+
+| DSA | ไฟล์/จุดที่ใช้ | ข้อมูลที่ประมวลผลและผลต่อ UX | Complexity |
+|---|---|---|---|
+| Insertion Sort | `frontend/src/utils/plantUtils.js` เรียกใช้ใน `frontend/src/pages/HomePage.jsx` | เรียงผลการค้นหาต้นไม้ตาม `common_name` ก่อนแสดงผล ทำให้ผู้ใช้ไล่ดูชื่อ A–Z ได้ง่าย | Best case O(n), Average/Worst case O(n²); ฟังก์ชันคัดลอก array ก่อนเรียงจึงมีพื้นที่เพิ่ม O(n) |
+| Browser Storage (ไม่จัดเป็น DSA ที่เขียนเอง) | `frontend/src/utils/plantUtils.js` | เก็บ Favorites ใน `localStorage` ภายใต้ key `trefleshop_favorites`; ใช้ `slug` ตรวจสอบรายการใน Array | การค้นหา slug ด้วย `.some()` และการกรองด้วย `.filter()` เป็น O(n) |
+| Graph + BFS | `frontend/src/Graph.js` | Graph เก็บความสัมพันธ์ของหน้าและใช้ `pageGraph` สร้างเมนู; `canReach()` / `checkGraph()` เป็นฟังก์ชันตรวจสอบการเข้าถึง | BFS O(V + E); ฟังก์ชัน BFS ยังไม่ถูกเรียกใน flow หน้าเว็บปัจจุบัน |
+
+### เหตุผลที่เลือกใช้
+
+- **Insertion Sort:** เหมาะสำหรับอธิบายการเรียงข้อมูลในโปรเจกต์ และทำให้ผลค้นหามีลำดับ A–Z ก่อนแสดงแก่ผู้ใช้
+- **Browser Storage:** ใช้ `localStorage` เก็บ Favorites และใช้ `sessionStorage` เก็บสถานะค้นหา/ประวัติการดู ส่วนนี้เป็นกลไกจัดเก็บข้อมูลของเบราว์เซอร์ ไม่ใช่การ implement Hash Table เอง
+- **Graph:** แทนความสัมพันธ์การนำทางของแต่ละหน้าอย่างชัดเจน โดย `pageGraph` ถูกใช้สร้างเมนูจริง ส่วน BFS เป็นฟังก์ชันตรวจสอบเส้นทางที่มีอยู่ในโค้ด แต่ยังไม่ได้เชื่อมเข้ากับ flow ของผู้ใช้
+
